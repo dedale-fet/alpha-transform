@@ -55,7 +55,7 @@ along the way give a demonstration of the general usage of the transform.
 
 >>> # Setting up the transform
 >>> trafo = AST(im.shape[1], im.shape[0], [0.5]*3) # 1
-Precomputing shearlet system: 100%|████████████████████████████████████████████| 52/52 [00:05<00:00,  8.83it/s]
+Precomputing shearlet system: 100%|███████████████████████████████████████| 52/52 [00:05<00:00,  8.83it/s]
 
 >>> # Computing and understanding the α-shearlet coefficients
 >>> coeff = trafo.transform(im) # 2
@@ -95,8 +95,8 @@ Precomputing shearlet system: 100%|███████████████
 
 The first few (unnumbered) lines import relevant packages and load (a gray scale version of) the following
 test image, which has a resolution of 1024 x 768 pixels:
-<p style="text-align: center;">
-<img src="http://www.scipy-lectures.org/_images/face.png" style="width: 512px;"/>
+<p align="center">
+<img src="http://www.scipy-lectures.org/_images/face.png" width="512"/>
 </p>
 
 
@@ -135,6 +135,7 @@ The special index `-1` stands for the **low-pass part**. All other indices are o
 * `k` encodes the **amount of shearing**, ranging from -⌈2<sup>j(1 - α)</sup>⌉ to ⌈2<sup>j(1 - α)</sup>⌉ on scale ``j``.
 * `c` encodes the **cone** to which the shearlet belongs (in the Fourier domain). Precisely, we have the following correspondence
   between the value of `c` and the corresponding frequency cones:
+
   | value of `c`   | `'r'` | `'t'` | `'l'` | `'b'`  |
   | -------------- |:-----:|:-----:|:-----:|:------:|
   | Frequency cone | right |  top  | left  | bottom |
@@ -147,7 +148,7 @@ additional argument `real=True`. In this case, the frequency plane is split into
 a vertical (encoded by `'v'`) cone, as is indicated by the following example:
 ```python
 >>> trafo_real = AST(im.shape[1], im.shape[0], [0.5]*3, real=True)
-Precomputing shearlet system: 100%|███████████████████████████████████████████| 26/26 [00:03<00:00,  5.62it/s]
+Precomputing shearlet system: 100%|██████████████████████████████████████| 26/26 [00:03<00:00,  5.62it/s]
 >>> trafo_real.indices
 [-1,
  (0, -1, 'h'), (0, 0, 'h'), (0, 1, 'h'),
@@ -189,7 +190,7 @@ the "coefficient images" for the subsampled transform are all of different sizes
 
 >>> im = misc.face(gray=True)
 >>> trafo = AST(im.shape[1], im.shape[0], [0.5]*3, subsampled=True) # 1
-Precomputing shearlets: 100%|█████████████████████████████████████████████████| 52/52 [00:00<00:00, 69.87it/s]
+Precomputing shearlets: 100%|████████████████████████████████████████████| 52/52 [00:00<00:00, 69.87it/s]
 >>> coeff = trafo.transform(im) # 2
 
 >>> type(coeff).__name__ # 3
@@ -260,14 +261,14 @@ The following code uses a grid search to determine the value of α which yields 
 
 >>> optimize_AAR(images, num_scales, 1 / (num_alphas - 1), shearlet_args=shearlet_args)
 First step: Determine the maximum relevant value...
-alpha loop: 100%|██████████████████████████████████████████████████████████████| 3/3 [00:10<00:00,  3.48s/it]
-image loop: 100%|██████████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.60s/it]
+alpha loop: 100%|████████████████████████████████████████████████████████| 3/3 [00:10<00:00,  3.48s/it]
+image loop: 100%|████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.60s/it]
 Maximum relevant value: 0.04408709120918954
 
 Second step: Computing the approximation errors...
-alpha loop: 100%|██████████████████████████████████████████████████████████████| 3/3 [01:40<00:00, 30.99s/it]
-Image loop: 100%|██████████████████████████████████████████████████████████████| 1/1 [00:46<00:00, 46.89s/it]
-Thresh. loop: 100%|████████████████████████████████████████████████████████████| 50/50 [00:45<00:00,  1.10it/s]
+alpha loop: 100%|████████████████████████████████████████████████████████| 3/3 [01:40<00:00, 30.99s/it]
+Image loop: 100%|████████████████████████████████████████████████████████| 1/1 [00:46<00:00, 46.89s/it]
+Thresh. loop: 100%|██████████████████████████████████████████████████████| 50/50 [00:45<00:00,  1.10it/s]
 
 Third step: Computing the approximation rates...
 Common breakpoints: [0, 4, 34, 50]
@@ -281,28 +282,30 @@ last slopes:
 Optimal value: alpha = 0.00
 ```
 In addition to the output shown above, executing this code will display the following plot:
-<p style="text-align: center;">
+<p align="center">
 <a name="aar-plot"></a>
-<img src="./AAR_dust_example_plot.png" style="width: 900px;"/>
+<img src="./AAR_dust_example_plot.png" width="900"/>
 </p>
 
 
 We now briefly explain the above [code](#aar-session) and output:
 In the short program above, we first import the function `optimize_AAR` which will do the actual work.
 Then, we define the parameters to be passed to this function:
+
 1. In line 1, we determine the properties of the α-shearlet systems that will be used:
     * `'real': True` ensures that real-valued shearlets are used.
     * `'verbose': False` suppresses some output, e.g. the progress bar for precomputing the shearlet system.
 
-    Another possible option would be `'subsampled': True` if one wants to use the subsampled transform. Note though
-    that this is incompatible with the `'real': True` option.
+   Another possible option would be `'subsampled': True` if one wants to use the subsampled transform. Note though
+   that this is incompatible with the `'real': True` option.
 
 2. In line 2, we determine the set of images that is to be used. To ensure fast computations, we only take
    a single image for this example. Specifically, the used image is the logarithm of one of the 12 faces of cosmic
    dust data provided by CEA, as depicted in the following figure:
-   <p style="text-align: center;">
+
+   <p align="center">
    <a name="log-dust-image"></a>
-   <img src="log_dust_graphic.png" style="width: 400px;"/>
+   <img src="log_dust_graphic.png" width="400"/>
    </p>
 
 3. The variable `num_scales` determines how many scales the α-shearlet systems should use.
@@ -314,6 +317,7 @@ Then, we define the parameters to be passed to this function:
 
 Finally, we invoke the function `optimize_AAR` with the chosen parameters. As described in the technical report,
 this function does the following:
+
 1. It determines a range [0, c<sub>0</sub>] such that for c≥c<sub>0</sub>, all α-shearlet transforms yield the
    *same error* when all coefficients of absolute value ≤c are set to zero ("thresholded").
 
@@ -353,14 +357,14 @@ The following code uses a grid search to determine the value of α which yields 
 >>> num_alphas = 3
 >>> optimize_MAE(images, num_scales, 1 / (num_alphas - 1), shearlet_args=shearlet_args)
 First step: Determine the maximum relevant value...
-alpha loop: 100%|██████████████████████████████████████████████████████████████| 3/3 [00:11<00:00,  3.61s/it]
-image loop: 100%|██████████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.61s/it]
+alpha loop: 100%|████████████████████████████████████████████████████████| 3/3 [00:11<00:00,  3.61s/it]
+image loop: 100%|████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.61s/it]
 Maximum relevant value: 0.006053772894213893
 
 Second step: Computing the approximation errors...
-alpha loop: 100%|██████████████████████████████████████████████████████████████| 3/3 [01:40<00:00, 31.13s/it]
-image loop: 100%|██████████████████████████████████████████████████████████████| 1/1 [00:48<00:00, 48.25s/it]
-thresholding loop: 100%|███████████████████████████████████████████████████████| 50/50 [00:46<00:00,  1.08it/s]
+alpha loop: 100%|████████████████████████████████████████████████████████| 3/3 [01:40<00:00, 31.13s/it]
+image loop: 100%|████████████████████████████████████████████████████████| 1/1 [00:48<00:00, 48.25s/it]
+thresholding loop: 100%|█████████████████████████████████████████████████| 50/50 [00:46<00:00,  1.08it/s]
 
 Final step: Computing optimal value of alpha...
 mean errors:
@@ -372,20 +376,21 @@ Optimal value: alpha = 0.00
 ```
 
 In addition to the output shown above, executing this code will display the following plot:
-<p style="text-align: center;">
+<p align="center">
 <a name="mae-plot"></a>
-<img src="./MAE_example_plot.png" style="width: 800px;"/>
+<img src="./MAE_example_plot.png" width="800"/>
 </p>
 
 We now briefly explain the above [code](#mae-session) and output:
 In the short program above, we first import the function `optimize_MAE` which will do the actual work.
 Then, we define the parameters to be passed to this function:
+
 1. In line 1, we determine the properties of the α-shearlet systems that will be used:
     * `'real': True` ensures that real-valued shearlets are used.
     * `'verbose': False` suppresses some output, e.g. the progress bar for precomputing the shearlet system.
 
-    Another possible option would be `'subsampled': True` if one wants to use the subsampled transform. Note though
-    that this is incompatible with the `'real': True` option.
+   Another possible option would be `'subsampled': True` if one wants to use the subsampled transform. Note though
+   that this is incompatible with the `'real': True` option.
 
 2. In line 2, we determine the set of images that is to be used. To ensure fast computations, we only take
    a single image for this example. Specifically, the used image is the logarithm of one of the 12 faces of cosmic
@@ -448,9 +453,9 @@ optimal denoising performance:
                        1 / (num_alphas - 1),
                        num_noise_levels,
                        shearlet_args=shearlet_args)
-image loop: 100%|████████████████████████████████████████████████████████████████| 1/1 [01:33<00:00, 93.16s/it]
-alpha loop: 100%|████████████████████████████████████████████████████████████████| 3/3 [01:33<00:00, 28.44s/it]
-noise loop: 100%|████████████████████████████████████████████████████████████████| 5/5 [00:46<00:00,  9.38s/it]
+image loop: 100%|██████████████████████████████████████████████████████████| 1/1 [01:33<00:00, 93.16s/it]
+alpha loop: 100%|██████████████████████████████████████████████████████████| 3/3 [01:33<00:00, 28.44s/it]
+noise loop: 100%|██████████████████████████████████████████████████████████| 5/5 [00:46<00:00,  9.38s/it]
 
 Averaged error over all images and all noise levels:
 alpha = 1.00: 0.0961
@@ -461,9 +466,9 @@ Optimal value on whole set: alpha = 0.50
 ```
 
 In addition to the output shown above, executing the sample code also displays the following plot:
-<p style="text-align: center;">
+<p align="center">
 <a name="tdp-plot"></a>
-<img src="./TDP_example_plot.png" style="width: 900px;"/>
+<img src="./TDP_example_plot.png" width="900"/>
 </p>
 
 We now briefly explain the above [code](#tdp-session) and output:
@@ -612,9 +617,9 @@ and thus unsuitable for producing a nice plot.
 ```
 
 The above code produces a plot similar to the following:
-<p style="text-align: center;">
+<p align="center">
 <a name="sphere-plot"></a>
-<img src="./sphere_alpha_shearlets.png" style="width: 900px;"/>
+<img src="./sphere_alpha_shearlets.png" width="900"/>
 </p>
 
 
