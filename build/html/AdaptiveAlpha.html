@@ -1,0 +1,935 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Choosing α adaptively &#8212; Adaptive Alpha-Shearlet transform 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Adaptive Alpha-Shearlet transform 1.0 documentation" href="index.html" />
+    <link rel="next" title="Functions defined on the sphere" href="SphereTransform.html" />
+    <link rel="prev" title="The α-shearlet transform" href="AlphaTransform.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SphereTransform.html" title="Functions defined on the sphere"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="AlphaTransform.html" title="The α-shearlet transform"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="AlphaTransform.html">The α-shearlet transform</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Choosing α adaptively</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-AdaptiveAlpha">Documentation of the optimality criteria</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-AdaptiveAlpha">Documentation of auxiliary functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SphereTransform.html">Functions defined on the sphere</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MotherShearlets.html">Implementation of different &#8220;Mother Shearlets&#8221;</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlphaTransformUtility.html">Utility functions</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="AlphaTransform.html"
+                        title="previous chapter">The α-shearlet transform</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="SphereTransform.html"
+                        title="next chapter">Functions defined on the sphere</a></p>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="choosing-adaptively">
+<h1>Choosing α adaptively<a class="headerlink" href="#choosing-adaptively" title="Permalink to this headline">¶</a></h1>
+<p>The module <code class="docutils literal"><span class="pre">AdaptiveAlpha.py</span></code> can be used to choose the optimal value
+of the <em>anisotropy parameter</em> α, with respect to a given optimality
+<em>criterion</em> and a given family of images.</p>
+<p>Currently, the following <em>criteria</em> are implemented:</p>
+<ol class="arabic simple">
+<li>the <a class="reference internal" href="#AdaptiveAlpha.optimize_AAR" title="AdaptiveAlpha.optimize_AAR"><code class="xref py py-func docutils literal"><span class="pre">asymptotic</span> <span class="pre">approximation</span> <span class="pre">rate</span></code></a> (AAR),</li>
+<li>the <a class="reference internal" href="#AdaptiveAlpha.optimize_MAE" title="AdaptiveAlpha.optimize_MAE"><code class="xref py py-func docutils literal"><span class="pre">mean</span> <span class="pre">approximation</span> <span class="pre">error</span></code></a> (MAE),</li>
+<li>the <a class="reference internal" href="#AdaptiveAlpha.optimize_denoising" title="AdaptiveAlpha.optimize_denoising"><code class="xref py py-func docutils literal"><span class="pre">thresholding</span> <span class="pre">denoising</span> <span class="pre">performance</span></code></a> (TDP).</li>
+</ol>
+<p>In the following, these different criteria are described in greater detail.
+Finally, we document the auxiliary functions used to implement the criteria.</p>
+<div class="section" id="module-AdaptiveAlpha">
+<span id="documentation-of-the-optimality-criteria"></span><h2>Documentation of the optimality criteria<a class="headerlink" href="#module-AdaptiveAlpha" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="AdaptiveAlpha.optimize_AAR">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">optimize_AAR</code><span class="sig-paren">(</span><em>image_paths</em>, <em>num_scales</em>, <em>alpha_res</em>, <em>threshold_mode='hard'</em>, <em>num_x_values=50</em>, <em>base=1.25</em>, <em>show_plot=True</em>, <em>shearlet_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.optimize_AAR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of images <img class="math" src="_images/math/1e0967b80366925b1a5d86bb5acc110a70148036.png" alt="f=\{f_1,...,f_N\}"/>, this function uses a grid
+search to determine the optimal value of the parameter alpha of an
+alpha-shearlet system by comparing the <strong>asymptotic approximation rates</strong>
+obtained with different alpha-shearlet systems for the given set of images.</p>
+<p>Precisely, the asymptotic approximation rate for a set of images
+<img class="math" src="_images/math/1e0967b80366925b1a5d86bb5acc110a70148036.png" alt="f=\{f_1,...,f_N\}"/> is calculated as follows:</p>
+<ol class="arabic simple">
+<li>A sequence of threshhold coefficients <img class="math" src="_images/math/68845e4ba7513452607c71c9880d285f7654ddc0.png" alt="c=(c_j)_{j=0,...,J}"/> of the
+form <img class="math" src="_images/math/e977390539105c69b2191691a166cc9846a6d8dc.png" alt="c_j=c_0\cdot b^{-j}"/> is determined, where <img class="math" src="_images/math/81091890c4f9b7c4c8bbc0177a3821d0cd26d8b8.png" alt="c_0&gt;0"/>,
+<img class="math" src="_images/math/dfc3ce7c0d41e82c892887cb0dad98d882791c7c.png" alt="b&gt;1"/>.</li>
+<li>For each of the input images  <img class="math" src="_images/math/32c776976a60205210b12dc2566b5f2b2a81f7bf.png" alt="f_i"/>, each alpha and each
+of the threshold parameters <img class="math" src="_images/math/5b89bede090faf1cbe674443d77493d114a04089.png" alt="c_j"/>, the <strong>approximation error</strong>
+<img class="math" src="_images/math/b4eb36eb98265a0464c3fd876b345371188eff85.png" alt="E_\alpha(f_i;c_j)
+=\|f_i-S_\alpha^{-1}\Lambda_{c_j}S_\alpha f_i\|_{L^2}"/>
+is calculated. Here, <img class="math" src="_images/math/611b17d52a6a54e7997e0a329e33b2ef99015c2a.png" alt="\Lambda_c"/> is a
+thresholding operator with cut-off (or threshold) <img class="math" src="_images/math/ae12a24f88803b5895632e4848d87d46483c492c.png" alt="c"/>,
+<img class="math" src="_images/math/78fc159782e417dc421bb2a017edf5ed75b7605c.png" alt="S_\alpha"/> is the alpha-shearlet transform and
+<img class="math" src="_images/math/59bf1b14d08ede5e6e1c70d558ac0e0b3c6bf561.png" alt="S_\alpha^{-1}"/>
+the (pseudo)-inverse of the alpha-shearlet transform.
+All images are normalized to satisfy <img class="math" src="_images/math/83be8ef50bca8e5325068d9b395393640322f31b.png" alt="\|f_i\|_{L^2}=1"/>.</li>
+<li>The mean of the approximation errors with respect to the image set
+is taken:
+<img class="math" src="_images/math/2434208f29c34cca5a8ba37088cb601fb31c5260.png" alt="E_\alpha(f;c_j)=\frac{1}{N}\sum_{i=1}^N
+\|f_i-S_\alpha^{-1}\Lambda_{c_j}S_\alpha f_i\|_{L^2}"/>.</li>
+<li>For each value of alpha, the <strong>logarithm</strong> of  <img class="math" src="_images/math/0d4e53574bccf7b85c6f9eff1ac1d25ce0eed03b.png" alt="E_\alpha(f;c_j)"/>,
+as a function of <img class="math" src="_images/math/6b21e0b0899a0d2879d3b8019087fa630bab4ea2.png" alt="j"/>, is considered as a time series which is
+partitioned into <strong>almost linear parts</strong> using
+<em>piecewise linear times series segmentation</em>; see
+<a class="reference internal" href="#AdaptiveAlpha.common_linear_segmentation" title="AdaptiveAlpha.common_linear_segmentation"><code class="xref py py-func docutils literal"><span class="pre">common_linear_segmentation()</span></code></a> for more details and the techincal
+report for motivation.</li>
+<li>The value of alpha yielding the <em>smallest slope</em> (i.e., the fastest
+error decay) in the last of these almost linear parts is considered
+as the optimum.</li>
+</ol>
+<p>Many parameters (number of different alpha values, number of threshold
+parameters, etc.) of the procedure described above can be customized
+using the parameters of <a class="reference internal" href="#AdaptiveAlpha.optimize_AAR" title="AdaptiveAlpha.optimize_AAR"><code class="xref py py-func docutils literal"><span class="pre">optimize_AAR()</span></code></a>. These parameters are
+described in the following list.</p>
+<p><strong>Required parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image_paths</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>This parameter determines the set of images to be considered.
+Precisely, <code class="docutils literal"><span class="pre">image_paths</span></code> should be a list of strings, where
+each string is the path of an image, i.e., of a <code class="docutils literal"><span class="pre">.png</span></code> or a
+<code class="docutils literal"><span class="pre">.npy</span></code> file.</p>
+<p>All of these images/numpy arrays have to be two-dimensional and
+all of the same dimension. Furthermore, <code class="docutils literal"><span class="pre">image_paths</span></code> should
+contain at least one path.</p>
+</li>
+<li><strong>num_scales</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of scales which the different alpha-shearlet systems should use.</li>
+<li><strong>alpha_res</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; <p>This parameter determines the resolution (or density) which is used by
+the grid search to determine the optimal value of alpha.
+The different alpha values are taken uniformly over the interval [0,1],
+with sampling density <code class="docutils literal"><span class="pre">alpha_res</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If one wants to determine the <em>number</em> of different alpha values,
+this can be done by passing <code class="docutils literal"><span class="pre">alpha_res</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">/</span> <span class="pre">(num_alphas</span> <span class="pre">-</span> <span class="pre">1)</span></code>,
+where <code class="docutils literal"><span class="pre">num_alphas</span></code> is the desired number of different alpha
+values.</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>threshold_mode</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; <p>Either <code class="docutils literal"><span class="pre">'hard'</span></code> or <code class="docutils literal"><span class="pre">'soft'</span></code>. This parameter determines whether the
+hard thresholding operator</p>
+<div class="math">
+<p><img src="_images/math/cb22f2be502c6c3c52a1fbae20eea0b0878a5d7e.png" alt="\Lambda_cx
+= \begin{cases}
+     x, &amp; \text{if }|x|\geq c, \\
+     0, &amp; \text{if }|x|&lt;c,
+  \end{cases}"/></p>
+</div><p>or the soft thresholding operator</p>
+<div class="math">
+<p><img src="_images/math/c4ef8522fdcdbee559509bd2ecba1c0a3878a350.png" alt="\Lambda_cx
+=\begin{cases}
+     x\cdot \frac{|x|-c}{|x|}, &amp; \text{if }|x|\geq c, \\
+     0,                        &amp; \text{if }|x|&lt;c
+ \end{cases}"/></p>
+</div><p>is used for thresholding the alpha-shearlet coefficients.</p>
+</li>
+<li><strong>num_x_values</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of different threshold parameters that are used.
+Precisely, the considered thresholds are <img class="math" src="_images/math/18fe84f8a427049b9e7889fe595df5787560d1a0.png" alt="(c_j)_{j=0,...,J}"/>,
+with <img class="math" src="_images/math/1f7a1bdf3d4e3282bcdd9046f1371490c09e9609.png" alt="c_j = c_0 \cdot b^{-j}"/>, where
+<img class="math" src="_images/math/895780c1c0c2ece7263f6ae02c3bbb15a8452655.png" alt="J = \mathrm{num\_x\_values} - 1"/> and where the base <code class="docutils literal"><span class="pre">b</span></code> is
+determined by the parameter <code class="docutils literal"><span class="pre">base</span></code>. Finally,
+<img class="math" src="_images/math/871e0834b8b6f132c00a57acee8b4c8fb2eb2c77.png" alt="c_0"/> is choosen as the maximum value of
+<img class="math" src="_images/math/070ad67b1dc0e26ed8c449f14e172cb594c0b7d2.png" alt="\|S_\alpha f_i\|_\infty"/> over all images and
+all values of alpha.</li>
+<li><strong>base</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Value of the basis <img class="math" src="_images/math/dfc3ce7c0d41e82c892887cb0dad98d882791c7c.png" alt="b&gt;1"/> for the calculation of the threshold
+parameters <img class="math" src="_images/math/e977390539105c69b2191691a166cc9846a6d8dc.png" alt="c_j=c_0\cdot b^{-j}"/>. See <code class="docutils literal"><span class="pre">num_x_values</span></code> for a
+more thorough explanation.</li>
+<li><strong>show_plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If this paramter is set to <code class="docutils literal"><span class="pre">True</span></code>, executing <a class="reference internal" href="#AdaptiveAlpha.optimize_AAR" title="AdaptiveAlpha.optimize_AAR"><code class="xref py py-func docutils literal"><span class="pre">optimize_AAR()</span></code></a>
+will also display a log-log plot of <img class="math" src="_images/math/733bbfd173e1e777ab724f9aeeb8bba6575ebf5c.png" alt="E_\alpha (f;c)"/>, together
+with the associated partition into <em>almost linear parts</em>.</li>
+<li><strong>shearlet_args</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; <p>This argument can be used to determine the properties of the employed
+alpha-shearlet systems. A typical example of this argument is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;subsampled&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;real&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>where the chosen values of <code class="docutils literal"><span class="pre">True</span></code> or <code class="docutils literal"><span class="pre">False</span></code> can of course differ.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The parameter <code class="docutils literal"><span class="pre">shearlet_args</span></code> is just passed as a set of keyword
+arguments to the constructor of the class
+<a class="reference internal" href="AlphaTransform.html#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a>.
+See the documentation of that class for more details, in particular
+for the respective default values.</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The function returns that value of alpha (as a <a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>) which
+yields the <strong>smallest asymptotic approximation rate</strong>, i.e.,
+the <strong>fastest asymptotic error-decay</strong>, for the given set of  images.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="AdaptiveAlpha.optimize_MAE">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">optimize_MAE</code><span class="sig-paren">(</span><em>image_paths</em>, <em>num_scales</em>, <em>alpha_res</em>, <em>threshold_mode='hard'</em>, <em>num_x_values=50</em>, <em>max_value=None</em>, <em>show_plot=True</em>, <em>shearlet_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.optimize_MAE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of images <img class="math" src="_images/math/1e0967b80366925b1a5d86bb5acc110a70148036.png" alt="f=\{f_1,...,f_N\}"/>, this function uses a grid
+search to determine the optimal value of the parameter alpha of an
+alpha-shearlet system by comparing the <strong>mean approximation error</strong>
+obtained with different alpha-shearlet systems for the given set of images.</p>
+<p>Precisely, the <em>mean approximation error</em> for a set of images
+<img class="math" src="_images/math/1e0967b80366925b1a5d86bb5acc110a70148036.png" alt="f=\{f_1,...,f_N\}"/> is calculated as follows:</p>
+<ol class="arabic simple">
+<li>A sequence of threshold coefficients <img class="math" src="_images/math/16f44b0450d7ae33748ad1de65a93dc3a3dd340e.png" alt="c=(c_j)_{j=1,...,J}"/> is
+determined. In fact, the <img class="math" src="_images/math/5b89bede090faf1cbe674443d77493d114a04089.png" alt="c_j"/> are chosen to be <strong>uniformly
+distributed</strong> in an interval <img class="math" src="_images/math/02e216c6dbcc7fbca9434386acfb5b64cbd5c623.png" alt="[0, m]"/>, where the maximal value
+<code class="docutils literal"><span class="pre">m</span></code> is determined by the parameter <code class="docutils literal"><span class="pre">max_value</span></code>.</li>
+<li>For each of the input images <img class="math" src="_images/math/32c776976a60205210b12dc2566b5f2b2a81f7bf.png" alt="f_i"/>, each alpha and each
+of the threshold parameters <img class="math" src="_images/math/5b89bede090faf1cbe674443d77493d114a04089.png" alt="c_j"/>, the approximation error
+<img class="math" src="_images/math/dc0715a65d8bf3329afc935398b7f0d121a34091.png" alt="E_\alpha(f_i;c_j)=
+\|f_i-S_\alpha^{-1}\Lambda_{c_j}S_\alpha f_i\|_{L^2}"/>
+is calculated. Here, <img class="math" src="_images/math/611b17d52a6a54e7997e0a329e33b2ef99015c2a.png" alt="\Lambda_c"/> is the
+(hard) thresholding operator with cut-off (or threshold) <img class="math" src="_images/math/ae12a24f88803b5895632e4848d87d46483c492c.png" alt="c"/>,
+<img class="math" src="_images/math/78fc159782e417dc421bb2a017edf5ed75b7605c.png" alt="S_\alpha"/> is the alpha-shearlet transform and
+<img class="math" src="_images/math/59bf1b14d08ede5e6e1c70d558ac0e0b3c6bf561.png" alt="S_\alpha^{-1}"/> the (pseudo)-inverse of the alpha-shearlet
+transform. All images are normalized so that <img class="math" src="_images/math/83be8ef50bca8e5325068d9b395393640322f31b.png" alt="\|f_i\|_{L^2}=1"/>.</li>
+<li>The mean of the approximation errors with respect to the image set
+and with respect to the threshold parameters is taken:
+<img class="math" src="_images/math/bf7219e3c7736460a470e58d509a54eb528aa8b4.png" alt="\text{MAE}(f;\alpha)=\frac{1}{N}\sum_{i=1}^N \frac{1}{J}
+\sum_{j=1}^J\|f_i-S_\alpha^{-1}\Lambda_{c_j}S_\alpha f_i\|_{L^2}"/>.</li>
+<li>The value of alpha which yields the smallest value for
+<img class="math" src="_images/math/cf47a3a240a38e568e2239ba66879d3aa936d4a5.png" alt="\text{MAE}(f;\alpha)"/> is considered as the optimum.</li>
+</ol>
+<p>Many parameters (number of different alpha values, number of threshold
+parameters, etc.) of the procedure described above can be customized
+using the parameters of <a class="reference internal" href="#AdaptiveAlpha.optimize_MAE" title="AdaptiveAlpha.optimize_MAE"><code class="xref py py-func docutils literal"><span class="pre">optimize_MAE()</span></code></a>. These are described in
+the following list.</p>
+<p><strong>Required parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image_paths</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>This parameter determines the set of images to be considered.
+Precisely, <code class="docutils literal"><span class="pre">image_paths</span></code> should be a list of strings, where
+each string is the path of an image, i.e., of a <code class="docutils literal"><span class="pre">.png</span></code> or a
+<code class="docutils literal"><span class="pre">.npy</span></code> file.</p>
+<p>All of these images/numpy arrays have to be two-dimensional and
+all of the same dimension. Furthermore, <code class="docutils literal"><span class="pre">image_paths</span></code> should
+contain at least one path.</p>
+</li>
+<li><strong>num_scales</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of scales which the different alpha-shearlet systems should
+use.</li>
+<li><strong>alpha_res</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; <p>This parameter determines the resolution (or density) which is used by
+the grid search to determine the optimal value of alpha.
+The different alpha values are taken uniformly over the interval [0,1],
+with sampling density <code class="docutils literal"><span class="pre">alpha_res</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If one wants to determine the <em>number</em> of different alpha values,
+this can be done by passing <code class="docutils literal"><span class="pre">alpha_res</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">/</span> <span class="pre">(num_alphas</span> <span class="pre">-</span> <span class="pre">1)</span></code>,
+where <code class="docutils literal"><span class="pre">num_alphas</span></code> is the desired number of different alpha
+values.</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>threshold_mode</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; <p>Either <code class="docutils literal"><span class="pre">'hard'</span></code> or <code class="docutils literal"><span class="pre">'soft'</span></code>. This parameter determines whether
+the hard thresholding operator</p>
+<div class="math">
+<p><img src="_images/math/b1eb222c8f9cc65763aaacaf48551ff2cbbac0b1.png" alt="\Lambda_cx
+=\begin{cases}
+    x &amp; \text{if }|x|\geq c\\
+    0 &amp; \text{if }|x|&lt;c
+ \end{cases}"/></p>
+</div><p>or the soft thresholding operator</p>
+<div class="math">
+<p><img src="_images/math/623cd975dcb97360d049871ee69d1fc3fe7d0148.png" alt="\Lambda_cx
+=\begin{cases}
+    x\cdot \frac{|x|-c}{|x|} &amp; \text{if }|x|\geq c\\
+    0                        &amp; \text{if }|x|&lt;c
+ \end{cases}"/></p>
+</div><p>is applied to each of the alpha-shearlet coefficients.</p>
+</li>
+<li><strong>num_x_values</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of different threshold parameters that are used. These are
+taken equally distributed from <img class="math" src="_images/math/677949ab783225c6bbed4510d81161f981bbe923.png" alt="\{0,...,\mathrm{max\_value}\}"/>.</li>
+<li><strong>max_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; <p>Maximum value of the threshold parameter.</p>
+<p>If the default value (<code class="docutils literal"><span class="pre">None</span></code>) is passed, <code class="docutils literal"><span class="pre">max_value</span></code> is taken as
+the largest absolute value of all alpha-shearlet coefficients
+(maximizing over all images and all considered values of alpha)
+<strong>which do not belong to the low-pass part</strong>. The reason for this
+choice is that if <code class="docutils literal"><span class="pre">c</span></code> is chosen greater than this threshold, then
+<img class="math" src="_images/math/4cf0142d0feb9f457ea6366f966eed6f8ab4bed1.png" alt="E_\alpha (f_i; c)"/> is <em>independent</em> of <img class="math" src="_images/math/877d234f4cec6974ce218fc2e975a486a7972dfd.png" alt="\alpha"/>.</p>
+</li>
+<li><strong>show_plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If this parameter is set to <code class="docutils literal"><span class="pre">True</span></code>, executing <a class="reference internal" href="#AdaptiveAlpha.optimize_MAE" title="AdaptiveAlpha.optimize_MAE"><code class="xref py py-func docutils literal"><span class="pre">optimize_MAE()</span></code></a>
+will display a plot of the <em>error curves</em> <img class="math" src="_images/math/ca12b9525d944356bb6895387fb18b9ecdb9bc5d.png" alt="E_\alpha (f; c)"/>
+(jointly for all considered alpha values) as a function of <code class="docutils literal"><span class="pre">c</span></code>.</li>
+<li><strong>shearlet_args</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; <p>This argument can be used to determine the properties of the employed
+alpha-shearlet systems. A typical example of this argument is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;subsampled&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;real&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>where the chosen values of <code class="docutils literal"><span class="pre">True</span></code> or <code class="docutils literal"><span class="pre">False</span></code> can of course differ.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The parameter <code class="docutils literal"><span class="pre">shearlet_args</span></code> is just passed as a set of keyword
+arguments to the constructor of the class
+<a class="reference internal" href="AlphaTransform.html#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a>.
+See the documentation of that class for more details, in particular
+for the respective default values.</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The function return the value of alpha (as a <a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>) which
+yields the smallest value of <img class="math" src="_images/math/cf47a3a240a38e568e2239ba66879d3aa936d4a5.png" alt="\text{MAE}(f;\alpha)"/> for the
+given set of images.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="AdaptiveAlpha.optimize_denoising">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">optimize_denoising</code><span class="sig-paren">(</span><em>image_paths</em>, <em>num_scales</em>, <em>alpha_res</em>, <em>num_noise_lvls</em>, <em>noise_min=0.02</em>, <em>noise_max=0.4</em>, <em>sample_size=None</em>, <em>thresh_multiplier=None</em>, <em>show_plot=True</em>, <em>shearlet_args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.optimize_denoising" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of images, this function uses a grid search to determine the
+optimal value of the parameter alpha of an alpha-shearlet system by
+comparing the <strong>performance</strong> of different alpha-shearlet systems <strong>for</strong>
+certain <strong>denoising</strong> experiments using the given set of images.</p>
+<p>Precisely, the denoising performance is measured as follows:
+For each of the input images <img class="math" src="_images/math/32c776976a60205210b12dc2566b5f2b2a81f7bf.png" alt="f_i"/>, the following operations are
+performed:</p>
+<ol class="arabic">
+<li><p class="first">Gaussian noise <img class="math" src="_images/math/fa0ad17f87dba480d2b0dd80f16775f79efb411a.png" alt="\mathcal{N} = \mathcal{N}_\sigma"/> with standard
+deviation <img class="math" src="_images/math/011e5790a6c33043ceadca81d9657dde6c61d769.png" alt="\sigma"/> is added to <img class="math" src="_images/math/32c776976a60205210b12dc2566b5f2b2a81f7bf.png" alt="f_i"/> to obtain a
+<em>distorted image</em> <img class="math" src="_images/math/35decbfef00c069a4e490f97cacd6b15ac9c9f1d.png" alt="\tilde{f_i} = f_i + \mathcal{N}"/>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Each <img class="math" src="_images/math/32c776976a60205210b12dc2566b5f2b2a81f7bf.png" alt="f_i"/> is actually a <strong>normalized</strong> version of an
+input image, i.e., <img class="math" src="_images/math/dc2c8e12a715e70394ad118cf4c1d64cbef0e05f.png" alt="\|f_i\|_{L^2} = 1"/>. This normalization
+is used to ensure that the standard deviation <img class="math" src="_images/math/011e5790a6c33043ceadca81d9657dde6c61d769.png" alt="\sigma"/> is
+comparable to the image itself.</p>
+</div>
+</li>
+<li><p class="first">The alpha-shearlet transform <img class="math" src="_images/math/7a7a04961f21fb257c0b5678de6f00cbe56800fe.png" alt="S_\alpha \tilde{f_i}"/> of
+<img class="math" src="_images/math/fc9238c5589a3bcef10126fae963e41762a33dd7.png" alt="\tilde{f_i}"/> is computed.</p>
+</li>
+<li><p class="first">The alpha-shearlet coefficients are <em>thresholded</em>, yielding
+<img class="math" src="_images/math/4fa1b883cf3f7a9061fdb94f191c946a5a74524a.png" alt="\Lambda_c S_\alpha \tilde{f_i}"/>, where <img class="math" src="_images/math/611b17d52a6a54e7997e0a329e33b2ef99015c2a.png" alt="\Lambda_c"/> is the
+hard thresholding operator with cut-off (or threshold) c.</p>
+<p>The precise value of the threshold c is actually noise- and
+scale-dependent. See below for a more detailed description.</p>
+</li>
+<li><p class="first">The thresholded coefficients are used to reconstruct a denoised version
+<img class="math" src="_images/math/79b19012e472bb27f43701fee56fde3495013f17.png" alt="g_i"/> of <img class="math" src="_images/math/fc9238c5589a3bcef10126fae963e41762a33dd7.png" alt="\tilde{f_i}"/>.
+Precisely, <img class="math" src="_images/math/7b03fbc6ad9ba2c707976efecb76fbc734d1cac3.png" alt="g_i = S_\alpha^{-1} \Lambda_c S_\alpha \tilde{f_i}"/>,
+where <img class="math" src="_images/math/59bf1b14d08ede5e6e1c70d558ac0e0b3c6bf561.png" alt="S_\alpha^{-1}"/> is the (pseudo)-inverse of <img class="math" src="_images/math/78fc159782e417dc421bb2a017edf5ed75b7605c.png" alt="S_\alpha"/>.</p>
+</li>
+<li><p class="first">The error <img class="math" src="_images/math/6a9f15dd8825914f83222964abebab45a2b3675c.png" alt="\mathrm{TDP}_\alpha (f_i;\sigma) = \|f_i - g_i\|_{L^2}"/>
+is computed to measure the suitability of the alpha-shearlet system for
+denoising the given image <img class="math" src="_images/math/32c776976a60205210b12dc2566b5f2b2a81f7bf.png" alt="f_i"/>.</p>
+</li>
+</ol>
+<p>This procedure is repeated for all images in the given set and for a number
+of different <strong>noise levels</strong> <img class="math" src="_images/math/76f1d8ace30435987c01a00ca53a71cba1f40e6c.png" alt="\lambda"/>, where the noise level is
+proprtional to the standard deviation <img class="math" src="_images/math/011e5790a6c33043ceadca81d9657dde6c61d769.png" alt="\sigma"/> of the gaussian noise
+<img class="math" src="_images/math/0250cd10e57d0f3e6f5fd2a9ae8270a964a57794.png" alt="\mathcal{N}_\sigma"/>. In total, the suitability of the alpha-shearlet
+system for denoising the given set of images is measured by taking the mean
+over all given images and all considered noise levels, i.e., by</p>
+<div class="math">
+<p><img src="_images/math/f5fcfd9e2420bf2553819ec8c723f2ba86a7d2a7.png" alt="\mathrm{TDP}_\alpha ((f_1, \dots, f_N))
+&amp; := \frac{1}{N} \sum_{i=1}^N \frac{1}{|\Sigma|}
+     \sum_{\sigma \in \Sigma} \mathrm{TDP}_\alpha (f_i; \sigma),"/></p>
+</div><p>where <img class="math" src="_images/math/7b887ca4d449002abecf59a472644a272dfcb605.png" alt="\Sigma"/> denotes the set of all considered standard deviations.</p>
+<p>Many parameters (number of different alpha values, number of different
+noise levels, etc.) of the procedure described above can be customized
+using the parameters of <a class="reference internal" href="#AdaptiveAlpha.optimize_denoising" title="AdaptiveAlpha.optimize_denoising"><code class="xref py py-func docutils literal"><span class="pre">optimize_denoising()</span></code></a>. These are described in
+the following list.</p>
+<p><strong>Required Parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image_paths</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>This parameter determines the set of images to be considered.
+Precisely, <code class="docutils literal"><span class="pre">image_paths</span></code> should be a list of strings, where
+each string is the path of an image, i.e., of a <code class="docutils literal"><span class="pre">.png</span></code> or a
+<code class="docutils literal"><span class="pre">.npy</span></code> file.</p>
+<p>All of these images/numpy arrays have to be two-dimensional and
+all of the same dimension. Furthermore, <code class="docutils literal"><span class="pre">image_paths</span></code> should
+contain at least one path.</p>
+</li>
+<li><strong>num_scales</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of scales which the different alpha-shearlet systems should use.</li>
+<li><strong>alpha_res</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; <p>This parameter determines the resolution (or density) which is used by
+the grid search to determine the optimal value of alpha.
+The different alpha values are taken uniformly over the interval [0,1],
+with sampling density <code class="docutils literal"><span class="pre">alpha_res</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If one wants to determine the <em>number</em> of different alpha values,
+this can be done by passing <code class="docutils literal"><span class="pre">alpha_res</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">/</span> <span class="pre">(num_alphas</span> <span class="pre">-</span> <span class="pre">1)</span></code>,
+where <code class="docutils literal"><span class="pre">num_alphas</span></code> is the desired number of different alpha
+values.</p>
+</div>
+</li>
+<li><strong>num_noise_lvls</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of different noise levels that are used. These are taken equally
+distributed from the interval <code class="docutils literal"><span class="pre">[noise_min,</span> <span class="pre">...,</span> <span class="pre">noise_max]</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>noise_min</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; <p>Lower bound for the range from which the different <strong>noise levels</strong>
+are taken. Default value is <img class="math" src="_images/math/845fd2d05a8d80233d26ccbda432b3feb9699cad.png" alt="0.02"/>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The <strong>standard deviation</strong> <img class="math" src="_images/math/011e5790a6c33043ceadca81d9657dde6c61d769.png" alt="\sigma"/> of the noise and the
+<strong>noise level</strong> <img class="math" src="_images/math/76f1d8ace30435987c01a00ca53a71cba1f40e6c.png" alt="\lambda"/> are related by</p>
+<div class="math">
+<p><img src="_images/math/868767000d56f70412346d397621a87eb20ec9a1.png" alt="\sigma=\lambda/\sqrt{N_1\cdot N_2},"/></p>
+</div><p>where <img class="math" src="_images/math/a8f083455783fab759845eec9f0c68ac27b1ecca.png" alt="N_1 \times N_2"/> is the common dimension of all
+considered images. This ensures</p>
+<div class="math">
+<p><img src="_images/math/029249408bc0eae5794c175f8680383d96883e7a.png" alt="\mathbb{E} \|\mathcal{N}_\sigma\|_{L^2}^2
+= N_1 \cdot N_2 \cdot \sigma^2 = \lambda^2,"/></p>
+</div><p class="last">so that <img class="math" src="_images/math/c0ea838fa45b2ef8644c5eac46b9aed6d593070e.png" alt="\| \mathcal{N}_\sigma\|_{L^2}"/> is typically
+about <img class="math" src="_images/math/76f1d8ace30435987c01a00ca53a71cba1f40e6c.png" alt="\lambda"/>. Since we are considering normalized
+images, <img class="math" src="_images/math/76f1d8ace30435987c01a00ca53a71cba1f40e6c.png" alt="\lambda"/> is thus a good measure for the noise
+to signal ratio.</p>
+</div>
+</li>
+<li><strong>noise_max</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Upper limit for the range from which the different noise levels are
+taken. Default value is <code class="docutils literal"><span class="pre">0.4</span></code>. See <code class="docutils literal"><span class="pre">noise_min</span></code> for more details.</li>
+<li><strong>sample_size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; <p>This parameter can be used to test whether <em>generalization</em> occurs,
+i.e., if the optimal value of alpha learned on a small subset
+(the <em>training set</em>) of the data yields the same value as for the
+whole data set.</p>
+<p>Precisely, if <code class="docutils literal"><span class="pre">sample_size</span></code> is passed a value different from the
+default (<code class="docutils literal"><span class="pre">None</span></code>), then <code class="docutils literal"><span class="pre">optimize_denoising</span></code> also determines the
+optimal value of alpha for a randomly chosen subset of the given
+images. This randomly chosen subset has <code class="docutils literal"><span class="pre">sample_size</span></code> elements,
+i.e., <code class="docutils literal"><span class="pre">sample_size</span></code> determines the size of the training set.</p>
+</li>
+<li><strong>thresh_multiplier</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>This parameter determines how the threshold <code class="docutils literal"><span class="pre">c</span></code> for the hard
+thresholding operation is determined as a function of the noise
+level and of the scale.</p>
+<p>Precisely, the coefficients on scale <code class="docutils literal"><span class="pre">i</span></code> are thresholded with
+cutoff value <code class="docutils literal"><span class="pre">sigma</span> <span class="pre">*</span> <span class="pre">thresh_multiplier[i+1]</span></code>. Here, the low-pass
+has <code class="docutils literal"><span class="pre">i</span> <span class="pre">=</span> <span class="pre">-1</span></code>, while the other scales &#8220;begin counting&#8221; at <code class="docutils literal"><span class="pre">i</span> <span class="pre">=</span> <span class="pre">0</span></code>.
+Furthermore, <code class="docutils literal"><span class="pre">sigma</span></code> is the standard deviation of each entry of the
+noise.</p>
+<p>If the default value (<code class="docutils literal"><span class="pre">None</span></code>) is used, then thresh_multiplier is
+chosen as <code class="docutils literal"><span class="pre">[3]</span> <span class="pre">*</span> <span class="pre">num_scales</span> <span class="pre">+</span> <span class="pre">[4]</span></code>, so that all scales but the
+highest use a cutoff of <code class="docutils literal"><span class="pre">3</span> <span class="pre">*</span> <span class="pre">sigma</span></code>, while the highest scale uses
+<code class="docutils literal"><span class="pre">4</span> <span class="pre">*</span> <span class="pre">sigma</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">One can show (since we use the normalized alpha-shearlet
+coefficients, i.e., with <img class="math" src="_images/math/4b06dddcd0d9b62712f31ee6d2ec5a4211f2a783.png" alt="\|\psi_i\|_{L^2} = 1"/>) that each
+coefficient <img class="math" src="_images/math/c026c85ab755f64820f041de3d72193ff557f3bf.png" alt="(S_\alpha \mathcal{N}_\sigma)_i"/> is normally
+distributed with standard deviation <img class="math" src="_images/math/011e5790a6c33043ceadca81d9657dde6c61d769.png" alt="\sigma"/>. Hence, choosing
+the threshold as a multiple of <code class="docutils literal"><span class="pre">sigma</span></code> is natural.</p>
+</div>
+</li>
+<li><strong>show_plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>If this parameter is set to <code class="docutils literal"><span class="pre">True</span></code>, executing
+<a class="reference internal" href="#AdaptiveAlpha.optimize_denoising" title="AdaptiveAlpha.optimize_denoising"><code class="xref py py-func docutils literal"><span class="pre">optimize_denoising()</span></code></a> will also display a plot of the average
+denoising error</p>
+<div class="math">
+<p><img src="_images/math/5e895b74bc3692f1c80a9248347defb50e8ee711.png" alt="\frac{1}{N} \sum_{i=1}^N \mathrm{TDP}_\alpha (f_i ; \sigma)"/></p>
+</div><p>as a function of the noise level
+<img class="math" src="_images/math/53089803fee2bc90a28a2929d8faa32d7fee13bb.png" alt="\lambda = \sqrt{N_1 \cdot N_2} \cdot \sigma"/> in one common plot
+for all values of alpha.</p>
+</li>
+<li><strong>shearlet_args</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; <p>This argument can be used to determine the properties of the employed
+alpha-shearlet systems. A typical example of this argument is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;subsampled&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;real&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>where the chosen values of <code class="docutils literal"><span class="pre">True</span></code> or <code class="docutils literal"><span class="pre">False</span></code> can of course differ.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The parameter <code class="docutils literal"><span class="pre">shearlet_args</span></code> is just passed as a set of keyword
+arguments to the constructor of the class
+<a class="reference internal" href="AlphaTransform.html#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a>.
+See the documentation of that class for more details, in particular
+for the respective default values.</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">If <code class="docutils literal"><span class="pre">sample_size</span></code> is <code class="docutils literal"><span class="pre">None</span></code>, this function returns a single
+<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>, namely the value of alpha yielding the best
+denoising performance on the given images.<p>If <code class="docutils literal"><span class="pre">sample_size</span></code> is not <code class="docutils literal"><span class="pre">None</span></code>, this function returns a
+tuple <code class="docutils literal"><span class="pre">t</span></code> of two floats, where <code class="docutils literal"><span class="pre">t[0]</span></code> is the value of alpha
+yielding the best denoising performance on <em>all</em> of the given images,
+while <code class="docutils literal"><span class="pre">t[1]</span></code> is the value of alpha yielding the best denoising
+performance on the randomly selected <em>training set</em> of size
+<code class="docutils literal"><span class="pre">sample_size</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-AdaptiveAlpha">
+<span id="documentation-of-auxiliary-functions"></span><h2>Documentation of auxiliary functions<a class="headerlink" href="#module-AdaptiveAlpha" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="AdaptiveAlpha.common_linear_segmentation">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">common_linear_segmentation</code><span class="sig-paren">(</span><em>list_of_ys</em>, <em>max_error</em>, <em>direction</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.common_linear_segmentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function performs a <em>sliding window piecewise linear
+time series segmentation</em>, based on a certain
+<a class="reference external" href="http://www.stackoverflow.com/questions/24872314">Stackoverflow post</a>,
+simultaneously over a given set of time series.</p>
+<p>The parameter <code class="docutils literal"><span class="pre">list_of_ys</span></code> contains the set of time series, i.e., it is
+of the form <img class="math" src="_images/math/13eaa50113896b535bbc5a4e0fdeb5c8f6dde4eb.png" alt="\mathrm{list\_of\_ys} =
+[\mathrm{ys}^{(0)}, \dots, \mathrm{ys}^{(N)}]"/>,
+where each element <img class="math" src="_images/math/3de37720cd0891aeaba9bc80e50e999e45cb9fb3.png" alt="\mathrm{ys}^{(i)}"/> is itself a list with real
+values <img class="math" src="_images/math/354498e0a4d4bf8f81903c4df74f2ab67a3f1ec3.png" alt="\mathrm{ys}^{(i)} = [y_0^{(i)}, \dots, y_{n-1}^{(i)}]"/>,
+representing a time series. Note that the length <code class="docutils literal"><span class="pre">n</span></code> of the time series
+should be independent of <code class="docutils literal"><span class="pre">i</span></code>.
+The function then computes a sequence <img class="math" src="_images/math/c1647996b218ff51edd17252bf21d24decb408ca.png" alt="(x_1, ..., x_\ell)"/> of break
+points such that between each pair of consecutive break points, each of the
+sequences <img class="math" src="_images/math/3de37720cd0891aeaba9bc80e50e999e45cb9fb3.png" alt="\mathrm{ys}^{(i)}"/> is &#8220;almost linear&#8221;.</p>
+<p><strong>Required parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>list_of_ys</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of time series (of common length) which will be simultaneously
+split into &#8220;almost linear&#8221; parts using a common segmentation.
+For more details on the form of <code class="docutils literal"><span class="pre">list_of_ys</span></code>, see the description
+from above.</li>
+<li><strong>max_error</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; <p>A positive real number. The interval <img class="math" src="_images/math/a7adbd352371dc8ef87db026d737bb2b4e60206b.png" alt="[0, \dots, n]"/>,
+where <cite>n</cite> is the <em>common</em> length of all time series, is split into
+a number of intervals (segments) such that on each segment and for
+each of the time series <code class="docutils literal"><span class="pre">ys</span></code>, the best (affine)-linear
+approximation (in the sense of linear regression) to the time
+series <code class="docutils literal"><span class="pre">ys</span></code> itself has a uniform error of at most
+<code class="docutils literal"><span class="pre">max_error</span> <span class="pre">*</span> <span class="pre">(max(ys)</span> <span class="pre">-</span> <span class="pre">min(ys))</span></code>.</p>
+<p>Hence, for a given value of <code class="docutils literal"><span class="pre">max_error</span></code>, the allowed tolerance
+is still weighted with the actual <em>spread</em> of the values in each
+of the time series. This ensures that a segmentation of a scaled
+version of the given time series will result in the same
+segmentation as for the original time series.</p>
+</li>
+<li><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; <p>Either <code class="docutils literal"><span class="pre">'forward'</span></code> or <code class="docutils literal"><span class="pre">'reversed'</span></code>.</p>
+<p>For ordinary <em>sliding window piecewise linear segmentation</em>,
+one starts at the beginning of the time series (i.e., at 0) and
+enlarges the current segment until the criterion described above
+(see <code class="docutils literal"><span class="pre">max_error</span></code>) fails; then one starts the next segment.
+If <code class="docutils literal"><span class="pre">direction</span></code> is <code class="docutils literal"><span class="pre">'forward'</span></code>, this is exactly what this
+function does. If <code class="docutils literal"><span class="pre">direction</span></code> is <code class="docutils literal"><span class="pre">'reversed'</span></code>, then we start
+at the <strong>end</strong> of the time series instead of at the beginning.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return values</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple <code class="docutils literal"><span class="pre">(breaks,</span> <span class="pre">slopes)</span></code>, where<ul>
+<li><code class="docutils literal"><span class="pre">breaks</span></code> is a <a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a> of nonnegative integers which is of
+the form <img class="math" src="_images/math/72bf936ca4c382940ee51cd4c872b54a2828738e.png" alt="[x_0=0, x_1, ..., x_{k},x_{\ell+1}=n]"/>. This list
+encode the different &#8220;common almost linear segments&#8221; found by the
+function. Precisely, the i-th segment is given by
+<img class="math" src="_images/math/37d51213640cdc094c7345033e69b1bd8053231f.png" alt="[x_i, x_{i+1})"/>.<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This interval is open on the right.</p>
+</div>
+</li>
+<li><code class="docutils literal"><span class="pre">slopes</span></code> is a <a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a> of reals, where <code class="docutils literal"><span class="pre">slopes[i]</span></code> is the
+slope of the best (affine)-linear approximation to the values <code class="docutils literal"><span class="pre">ys</span></code>
+on the i-th segment.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="AdaptiveAlpha.flexible_linear_regression">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">flexible_linear_regression</code><span class="sig-paren">(</span><em>xs</em>, <em>ys</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.flexible_linear_regression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given sequences <code class="docutils literal"><span class="pre">xs</span></code> and  <code class="docutils literal"><span class="pre">ys</span></code> of values <img class="math" src="_images/math/5c74a424cb958a24921ae5ea7323c1ef4312dd66.png" alt="[x_0,\dots, x_{n-1}]"/>
+and <img class="math" src="_images/math/c5d16d57c7c1ac92b3736e55b0f34ceede65241d.png" alt="[y_0, \dots, y_{n-1}]"/>, this function computes the best
+(affine)-linear approximation to the sequence
+<img class="math" src="_images/math/0792bbdcbe6a29de41aed45f8d98b59d148a0c35.png" alt="[(x_0,y_0),\dots,(x_{n-1},y_{n-1})]"/> and
+returns the y-intercept and slope of this best linear approximation.</p>
+<p><strong>Required parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xs</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of real values <img class="math" src="_images/math/9d91c552fae156b7708fa10c9bcb54e9aff258a0.png" alt="[x_0, \dots, x_{n-1}]"/> which determine
+the x-values of the sequence of points on which the linear regression
+should be performed.</li>
+<li><strong>ys</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>List of real values <img class="math" src="_images/math/c5d16d57c7c1ac92b3736e55b0f34ceede65241d.png" alt="[y_0, \dots, y_{n-1}]"/> which determine
+the y-values of the sequence of points on which the linear regression
+should be performed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The lists <code class="docutils literal"><span class="pre">xs</span></code> and <code class="docutils literal"><span class="pre">ys</span></code> are required to have the same length,
+which should at least be 2.</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return values</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple <code class="docutils literal"><span class="pre">(y_intercept,</span> <span class="pre">slope)</span></code>, where<ul class="simple">
+<li><code class="docutils literal"><span class="pre">y_intercept</span></code> is the y-intercept (a <a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>) of the
+best (affine)-linear approximation to the given points.</li>
+<li><code class="docutils literal"><span class="pre">slope</span></code> is the slope (a <a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>) of the best
+(affine)-linear approximation to the given points.</li>
+</ul>
+<p>In total, the best (affine)-linear approximation to the given points
+is given by <img class="math" src="_images/math/939c3f2c904090133fd33d715e207c3ae3261d0b.png" alt="y = \mathrm{y\_intercept} + \mathrm{slope} \cdot x"/>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="AdaptiveAlpha.linear_regression">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">linear_regression</code><span class="sig-paren">(</span><em>ys</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.linear_regression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a sequence <code class="docutils literal"><span class="pre">ys</span></code> of values <img class="math" src="_images/math/c5d16d57c7c1ac92b3736e55b0f34ceede65241d.png" alt="[y_0, \dots, y_{n-1}]"/>, which are
+interpreted as the <img class="math" src="_images/math/276f7e256cbddeb81eee42e1efc348f3cb4ab5f8.png" alt="y"/>-coordinates of
+<img class="math" src="_images/math/c6d3cf0e5940d5ab9c29be93a40540cb09cb7993.png" alt="[(0, y_1), \dots, (n-1, y_{n-1})]"/>, this function
+computes the best (affine)-linear approximation and returns the y-intercept
+and slope of the best (affine)-linear approximation, as well as the
+sequence of errors.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This function is essentially a more optimized version of the call
+<code class="docutils literal"><span class="pre">flexible_linear_regression(range(len(ys)),</span> <span class="pre">ys)</span></code>. The main difference
+is that <code class="docutils literal"><span class="pre">linear_regression</span></code> also returns the sequence of errors.</p>
+</div>
+<p><strong>Required Parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ys</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of real values interpreted as <img class="math" src="_images/math/c5d16d57c7c1ac92b3736e55b0f34ceede65241d.png" alt="[y_0, \dots, y_{n-1}]"/> for
+the linear regression on <img class="math" src="_images/math/1a6ab0c3a8d5b86aaeca9c420a304fd57898da3b.png" alt="[(0, y_0), \dots, (n-1, y_{n-1})]"/>,
+where <img class="math" src="_images/math/2a79a7c01fffaabf8fe8f1b6d8362e637fd8a6fb.png" alt="n="/> <code class="docutils literal"><span class="pre">len(ys)</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return values</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple <code class="docutils literal"><span class="pre">(errors,</span> <span class="pre">y_intercept,</span> <span class="pre">slope)</span></code>, where<ul class="simple">
+<li><code class="docutils literal"><span class="pre">errors</span></code> is a <a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a> of the differences between the given
+values (<code class="docutils literal"><span class="pre">ys</span></code>) and the values of the linear regression at
+<img class="math" src="_images/math/a59f68a4202623bb859a7093f0316bf466e6f75d.png" alt="x"/>-values <img class="math" src="_images/math/d47e368bec50ce8d182cfc3e2a8941bd61346b22.png" alt="0, \hdots, n-1"/>
+with <img class="math" src="_images/math/fac6ac4791287d09cd49f2bc05b1db59b836ee30.png" alt="n ="/> <code class="docutils literal"><span class="pre">len(ys)</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">y_intercept</span></code> is the y-intercept (a <a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>) of the
+best (affine)-linear approximation.</li>
+<li><code class="docutils literal"><span class="pre">slope</span></code> is the slope (a <a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>) of the best
+(affine)-linear approximation.</li>
+</ul>
+<p>In total, the best (affine)-linear approximation to the sequence of
+points <img class="math" src="_images/math/1a6ab0c3a8d5b86aaeca9c420a304fd57898da3b.png" alt="[(0, y_0), \dots, (n-1, y_{n-1})]"/> is given by
+<img class="math" src="_images/math/939c3f2c904090133fd33d715e207c3ae3261d0b.png" alt="y = \mathrm{y\_intercept} + \mathrm{slope} \cdot x"/>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="AdaptiveAlpha.log_plot_linear_segmentations">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">log_plot_linear_segmentations</code><span class="sig-paren">(</span><em>xs</em>, <em>ys_list</em>, <em>max_error</em>, <em>labels</em>, <em>direction='reversed'</em>, <em>colors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.log_plot_linear_segmentations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of time series (in <code class="docutils literal"><span class="pre">ys_list</span></code>, with corresponding time stamps
+given by <code class="docutils literal"><span class="pre">xs</span></code>), this function plots these time series in a log-log plot.
+In addition to the time series itself, the function also computes a
+segmentation on the time axis such that on each segment, each of the given
+time series is almost linear (<em>in the log-log plot</em>). On each of these
+segments, also the best linear approximation (in the log-log plot) to each
+of the time series is plotted.</p>
+<p><strong>Parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ys_list</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; A list of time series with <em>positive</em> values, i.e., each element of
+<code class="docutils literal"><span class="pre">ys_list</span></code> should be a list of positive real numbers and all elements
+of <code class="docutils literal"><span class="pre">ys_list</span></code> should have the same common length.</li>
+<li><strong>xs</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>A list of <em>positive</em> x-values (&#8220;time stamps&#8221;) associated to the time
+series in <code class="docutils literal"><span class="pre">ys_list</span></code>. In other words, for each time series <code class="docutils literal"><span class="pre">ys</span></code> in
+<code class="docutils literal"><span class="pre">ys_list</span></code>, <code class="docutils literal"><span class="pre">xs[i]</span></code> should be the x-value corresponding to the
+y-value <code class="docutils literal"><span class="pre">ys[i]</span></code>.
+In particular, <code class="docutils literal"><span class="pre">xs</span></code> should have the same length as every element
+of <code class="docutils literal"><span class="pre">ys_list</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is implicitly assumed that <code class="docutils literal"><span class="pre">xs</span></code> is of the form
+<code class="docutils literal"><span class="pre">xs</span> <span class="pre">=</span> <span class="pre">[x_0</span> <span class="pre">*</span> <span class="pre">b**i</span> <span class="pre">for</span> <span class="pre">i</span> <span class="pre">in</span> <span class="pre">range(len(xs))]</span></code>, for some <code class="docutils literal"><span class="pre">x_0</span> <span class="pre">&gt;0</span></code>
+and some <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">b</span> <span class="pre">!=</span> <span class="pre">1</span></code>, since the <em>logarithmic</em> time series are
+segmented using <a class="reference internal" href="#AdaptiveAlpha.common_linear_segmentation" title="AdaptiveAlpha.common_linear_segmentation"><code class="xref py py-func docutils literal"><span class="pre">common_linear_segmentation()</span></code></a>. This only
+yields the same result as a piecewise linear time series
+segmentation of the time series <em>in a log-log plot</em> if the x-values
+in <code class="docutils literal"><span class="pre">xs</span></code> behave linearly in the log-log plot. This is equivalent
+to the stated form of <code class="docutils literal"><span class="pre">xs</span></code>.</p>
+</div>
+</li>
+<li><strong>max_error</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; <p>A <em>positive</em> number which determines the tolerance for splitting the
+x-axis into several segments on each of which all of the time series
+should be &#8220;almost linear&#8221; (<em>in a log-log plot</em>).</p>
+<p>Precisely, the segmentation is determined by calling
+<code class="docutils literal"><span class="pre">common_linear_segmentation(log_ys_list,</span> <span class="pre">max_error,</span> <span class="pre">direction)</span></code>,
+where <code class="docutils literal"><span class="pre">log_ys_list</span> <span class="pre">=</span> <span class="pre">[np.log10(ys)</span> <span class="pre">for</span> <span class="pre">ys</span> <span class="pre">in</span> <span class="pre">ys_list]</span></code>.</p>
+</li>
+<li><strong>labels</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; This list (of strings) determines the label used in the plot for each
+of the time series in <code class="docutils literal"><span class="pre">ys_list</span></code>. In particular, the length of
+<code class="docutils literal"><span class="pre">labels</span></code> should be the same as that of <code class="docutils literal"><span class="pre">ys_list</span></code>.</li>
+<li><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; <p>Either <code class="docutils literal"><span class="pre">'reversed'</span></code> or <code class="docutils literal"><span class="pre">'forward'</span></code>. This parameter determines
+whether the piecewise linear time series segmentation should be started
+at the start of the time series (in case of <code class="docutils literal"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">'forward'</span></code>)
+or at the end of the time series (for <code class="docutils literal"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">'reversed'</span></code>);
+see also <a class="reference internal" href="#AdaptiveAlpha.common_linear_segmentation" title="AdaptiveAlpha.common_linear_segmentation"><code class="xref py py-func docutils literal"><span class="pre">common_linear_segmentation()</span></code></a>.</p>
+<p>Since this function is mainly to be used for plotting approximation
+rate curves and since these tend to be &#8220;more linear&#8221; at the end and
+since the important part for the <strong>asymptotic</strong> approximation rate is
+at the end of the time series, <code class="docutils literal"><span class="pre">'reversed'</span></code> is the default value.</p>
+</li>
+<li><strong>colors</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>A list of string which determines the color to be used for plotting
+each of the time series. Once the list of colors is exhausted, it is
+traversed again at the beginning.</p>
+<p>If the default value (<code class="docutils literal"><span class="pre">None</span></code>) is used, a default list of colors is
+used.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Nothing. Note that the resulting plot is not immediately shown, so that
+changes to the plot can be made. Call <code class="docutils literal"><span class="pre">matplotlib.pyplot.show()</span></code> to
+display the plot.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="AdaptiveAlpha.optimize_asymptotic_approx_rate">
+<code class="descclassname">AdaptiveAlpha.</code><code class="descname">optimize_asymptotic_approx_rate</code><span class="sig-paren">(</span><em>error_sequences</em>, <em>alphas</em>, <em>mode='longest'</em>, <em>max_number_of_segments=4</em>, <em>direction='reverse'</em><span class="sig-paren">)</span><a class="headerlink" href="#AdaptiveAlpha.optimize_asymptotic_approx_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Required parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>error_sequences</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; A list of the error-sequences to compare.
+All elements of <em>error_sequences</em> must have
+the same length.</li>
+<li><strong>alphas</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; The respective values of alpha belonging
+to the <em>error_sequences</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>max_number_of_segments</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; An integer &gt;= 2 which determines in how many
+linear parts each error sequence is split.</li>
+<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Either &#8216;longest&#8217; or &#8216;last&#8217;.In case of &#8216;longest&#8217;, the function
+looks for the longest(!) &#8216;almost linear&#8217; part in each of the
+error sequences and compares the respective slopes.
+In case of &#8216;last&#8217;, the function looks for the last(!)
+&#8216;almost linear&#8217; part (of length &gt;= 1/(2 * max_number_of_segments)
+* length of the whole sequence) in each of the error sequences
+and compares the respective slopes.</li>
+<li><strong>direction</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; <p>Either &#8216;reverse&#8217; or &#8216;forward&#8217;.
+This parameter influences whether the linear segmentation
+starts at the beginning or at the end of the sequence.</p>
+<p>For things like approximation errors, the behaviour is
+usually &#8220;more linear&#8221; at the end than at the beginning, so
+that in order to pick up this behaviour, it is mostly better
+to start at the end. Hence, &#8216;reverse&#8217; is the default value.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return values</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple <code class="docutils literal"><span class="pre">(i,</span> <span class="pre">epsilon)</span></code>, where<ul class="simple">
+<li><code class="docutils literal"><span class="pre">i</span></code> is the index (an <a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">int</span></code></a>) of the best error sequence</li>
+<li><code class="docutils literal"><span class="pre">epsilon</span></code> is the maximal precision (a <a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>) which leads
+to a number of segments which is &lt;= max_number_of_segments.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SphereTransform.html" title="Functions defined on the sphere"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="AlphaTransform.html" title="The α-shearlet transform"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

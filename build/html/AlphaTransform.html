@@ -1,0 +1,919 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The α-shearlet transform &#8212; Adaptive Alpha-Shearlet transform 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Adaptive Alpha-Shearlet transform 1.0 documentation" href="index.html" />
+    <link rel="next" title="Choosing α adaptively" href="AdaptiveAlpha.html" />
+    <link rel="prev" title="Adaptive transform for manifold-valued data" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="AdaptiveAlpha.html" title="Choosing α adaptively"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Adaptive transform for manifold-valued data"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The α-shearlet transform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-class-alphashearlettransform">The class <code class="docutils literal"><span class="pre">AlphaShearletTransform</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="AdaptiveAlpha.html">Choosing α adaptively</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SphereTransform.html">Functions defined on the sphere</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MotherShearlets.html">Implementation of different &#8220;Mother Shearlets&#8221;</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlphaTransformUtility.html">Utility functions</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Adaptive transform for manifold-valued data</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="AdaptiveAlpha.html"
+                        title="next chapter">Choosing α adaptively</a></p>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-AlphaTransform">
+<span id="the-shearlet-transform"></span><h1>The α-shearlet transform<a class="headerlink" href="#module-AlphaTransform" title="Permalink to this headline">¶</a></h1>
+<p>This module (<code class="docutils literal"><span class="pre">AlphaTransform.py</span></code>) provides the class
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> which can be used to compute the alpha-shearlet
+transform of images.</p>
+<p>The parameter alpha determines the <em>directionality</em> of the system:</p>
+<blockquote>
+<div><ul class="simple">
+<li>alpha = 1 yields a wavelet-like system,</li>
+<li>alpha = 0.5 yields a shearlet system,</li>
+<li>alpha = 0 yields a ridgelet-like system.</li>
+</ul>
+</div></blockquote>
+<p>The following is a simple example indicating how the transform can be used.
+For more details, we refer to the documentation of the class
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> below.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">AlphaTransform</span> <span class="k">import</span> <span class="n">AlphaShearletTransform</span> <span class="k">as</span> <span class="n">AST</span>
+
+<span class="c1"># create a transform for images of resolution 600 x 500,</span>
+<span class="c1"># with alpha = 0.5 and 3 scales</span>
+<span class="n">my_trafo</span> <span class="o">=</span> <span class="n">AST</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="n">test_im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">))</span>
+
+<span class="c1"># compute the alpha-shearlet coefficients</span>
+<span class="n">coeff</span> <span class="o">=</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test_im</span><span class="p">)</span>
+<span class="c1"># threshold the coefficients</span>
+<span class="n">thresh_coeff</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coeff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">)</span>
+<span class="c1"># reconstruct</span>
+<span class="n">recon</span> <span class="o">=</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">thresh_coeff</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reconstruction error&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">test_im</span> <span class="o">-</span> <span class="n">recon</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Apart from collecting all settings/parameters in one object,
+creating <cite>my_trafo</cite> also does any necessary precomputation
+(e.g. of the alpha-shearlet filters).
+Thus, creation of the instance <cite>my_trafo</cite> might be a little slow,
+but computation of each individual transform is comparatively fast.</p>
+<div class="section" id="the-class-alphashearlettransform">
+<h2>The class <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a><a class="headerlink" href="#the-class-alphashearlettransform" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="AlphaTransform.AlphaShearletTransform">
+<em class="property">class </em><code class="descclassname">AlphaTransform.</code><code class="descname">AlphaShearletTransform</code><span class="sig-paren">(</span><em>width</em>, <em>height</em>, <em>alphas</em>, <em>*</em>, <em>real=False</em>, <em>subsampled=False</em>, <em>generator=False</em>, <em>parseval=False</em>, <em>periodization=True</em>, <em>use_fftw=True</em>, <em>mother_shearlet=None</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>This constructor initializes the <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> object.</p>
+<p>Only three arguments are <em>required</em>. The remaining optional arguments
+have sensible default values which can be adjusted to achieve specific
+behaviours which are described below.</p>
+<p><strong>Required parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>width</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The width (in pixels) of the image(s) to be analyzed</li>
+<li><strong>height</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The height (in pixels) of the image(s) to be analyzed</li>
+<li><strong>alphas</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; <p>The length of this list determines the number of scales to be used.
+Each element <code class="docutils literal"><span class="pre">alphas[i]</span></code> determines the value of alpha to be used
+on scale <code class="docutils literal"><span class="pre">i</span></code>. Hence, it should satisfy <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">alphas[i]</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The most common choice is <code class="docutils literal"><span class="pre">alphas</span> <span class="pre">=</span> <span class="pre">[alpha]</span> <span class="pre">*</span> <span class="pre">N</span></code>, which
+will yield an alpha-shearlet transform with <code class="docutils literal"><span class="pre">N</span></code> scales
+(plus the low-pass part), i.e., the same value of alpha is
+used on all scales.</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>real</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>Flag indicating whether the transform should use <em>real-valued</em>
+alpha-shearlets. In particular, this means that the transform of a
+real-valued signal is real.</p>
+<p>Setting <code class="docutils literal"><span class="pre">real</span> <span class="pre">=</span> <span class="pre">True</span></code> amounts to a symmetrization of the
+alpha-shearlets on the Fourier-side.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Setting <code class="docutils literal"><span class="pre">real</span> <span class="pre">=</span> <span class="pre">True</span></code> is incompatible with
+<code class="docutils literal"><span class="pre">subsampled</span> <span class="pre">=</span> <span class="pre">True</span></code>!</p>
+</div>
+</li>
+<li><strong>subsampled</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>If set to true, the <em>subsampled</em> transform will be used. This has the
+following consequences:</p>
+<ul>
+<li>a lower redundancy,</li>
+<li>a lower memory consumption,</li>
+<li>the transform is <em>not</em> translation invariant,</li>
+<li>the <code class="docutils literal"><span class="pre">transform()</span></code> method will return a list of 2-dimensional numpy
+arrays with <strong>varying dimensions</strong>, instead of a single 3-dimensional
+numpy array.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Setting <code class="docutils literal"><span class="pre">subsampled</span> <span class="pre">=</span> <span class="pre">True</span></code> is incompatible with setting
+<code class="docutils literal"><span class="pre">real</span> <span class="pre">=</span> <span class="pre">True</span></code> and with setting <code class="docutils literal"><span class="pre">generator</span> <span class="pre">=</span> <span class="pre">True</span></code>!</p>
+</div>
+</li>
+<li><strong>parseval</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flag indicating whether the alpha-shearlets should be normalized
+(on the Fourier side) to get a Parseval frame.</li>
+<li><strong>periodization</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>Flag indicating whether the shearlets on the highest scale (which
+(potentially) exceed the Fourier domain), are to be periodized (if
+<code class="docutils literal"><span class="pre">periodization</span> <span class="pre">=</span> <span class="pre">True</span></code>) or truncated (if <code class="docutils literal"><span class="pre">periodization</span> <span class="pre">=</span> <span class="pre">False</span></code>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The subsampled transform <em>must</em> be periodized.</p>
+</div>
+</li>
+<li><strong>generator</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>Flag indicating whether the spectrograms should be precomputed (if
+<code class="docutils literal"><span class="pre">generator</span> <span class="pre">=</span> <span class="pre">False</span></code>) or computed each time the (inverse)
+transformation is computed (if <code class="docutils literal"><span class="pre">generator</span> <span class="pre">=</span> <span class="pre">True</span></code>).</p>
+<p>Setting <code class="docutils literal"><span class="pre">generator</span> <span class="pre">=</span> <span class="pre">False</span></code> will improve the runtime (if the
+transform is computed several times) but greatly increase the memory
+footprint, in particular for small alpha, large images and many scales.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If <code class="docutils literal"><span class="pre">generator</span></code> is set to <code class="docutils literal"><span class="pre">True</span></code>, the <code class="docutils literal"><span class="pre">transform()</span></code>
+method will return a generator instead of a 3-dimensional
+numpy array. This should be taken into account in
+implementations.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the subsampled transform is already memory efficient,
+setting <code class="docutils literal"><span class="pre">generator</span> <span class="pre">=</span> <span class="pre">True</span></code> for the subsampled transform
+makes no sense and is thus not allowed.</p>
+</div>
+</li>
+<li><strong>use_fftw</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flag indicating whether the <code class="docutils literal"><span class="pre">pyfftw</span></code> package should be used to
+compute Fourier transforms (which are used internally to compute
+convolutions).</li>
+<li><strong>mother_shearlet</strong> (<a class="reference internal" href="MotherShearlets.html#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>) &#8211; <p>This object determines the mother shearlet to be used. If the default
+value (<code class="docutils literal"><span class="pre">None</span></code>) is provided, the
+<code class="xref py py-obj docutils literal"><span class="pre">&quot;Haeuser</span> <span class="pre">shearlet&quot;</span></code>
+will be used.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For more information on other available mother shearlets, see
+<code class="docutils literal"><span class="pre">MotherShearlets.py</span></code>.</p>
+</div>
+</li>
+<li><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flag indicating whether a progress bar should be displayed while
+precomputing the shearlet system.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="AlphaTransform.AlphaShearletTransform.adjoint_transform">
+<code class="descname">adjoint_transform</code><span class="sig-paren">(</span><em>coeffs</em>, <em>spectrograms=None</em>, <em>do_norm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.adjoint_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method computes and returns the adjoint operator to the operator
+computed by the method <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>. Since the <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>
+method is the <em>analysis operator</em> associated to the shearlet system,
+this means that <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.adjoint_transform" title="AlphaTransform.AlphaShearletTransform.adjoint_transform"><code class="xref py py-func docutils literal"><span class="pre">adjoint_transform()</span></code></a> is the associated <em>synthesis
+operator</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The main use case of this method is if the transform is used
+in convex programming. Most solvers require that the linear
+transforms provide a method to apply the linear operator, as
+well as the adjoint of the linear operator.</p>
+</div>
+<p><strong>Required parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coeffs</strong> &#8211; <p>This should be roughly of the same type as the return value of
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>. Usually, this argument will even be obtained
+directly or indirectly from <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>, e.g. like the
+following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># initialize the image &#39;im&#39; and the transform object &#39;my_trafo&#39;</span>
+<span class="o">...</span> <span class="c1"># omitted for brevity</span>
+<span class="n">coeff</span> <span class="o">=</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+<span class="n">mod_coeff</span> <span class="o">=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coeff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">im2</span> <span class="o">=</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">adjoint_transform</span><span class="p">(</span><span class="n">mod_coeff</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>It is not necessary that the type of <code class="docutils literal"><span class="pre">coeffs</span></code> is
+precisely the same as that of the return value of
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>. For example, even if <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>
+returns a 3-dimensional numpy array, it is possible for
+<code class="docutils literal"><span class="pre">coeffs</span></code> to be a generator or a list. The crucial point
+is that the <em>dimensions match</em>, i.e., that the following
+code runs through:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">coeff_test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">c_t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coeff</span><span class="p">,</span> <span class="n">coeff_test</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">c_t</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spectrograms</strong> &#8211; <p>This parameter can be used to determine another system for
+synthesis than the shearlet system. If the default value (<code class="docutils literal"><span class="pre">None</span></code>)
+is passed, the synthesis is done with respect to the shearlet
+system associated to the <code class="docutils literal"><span class="pre">self</span></code> object.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The parameter <code class="docutils literal"><span class="pre">spectrograms</span></code> is mainly for internal
+use. Only use it if you know what you are doing.</p>
+</div>
+</li>
+<li><strong>do_norm</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If one wants to compute the adjoint operator to the
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a> method, then the value of <code class="docutils literal"><span class="pre">do_norm</span></code> has to be
+the same as for the invocation of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>. The default
+value is <code class="docutils literal"><span class="pre">True</span></code> in both cases.
+Cf. the documentation of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a> for more details.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>) &#8211; The result of the synthesis
+operator (associated to the (alpha-shearlet) system
+determined by <code class="docutils literal"><span class="pre">spectrograms</span></code>) applied to <code class="docutils literal"><span class="pre">coeff</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="AlphaTransform.AlphaShearletTransform.alpha">
+<code class="descname">alpha</code><span class="sig-paren">(</span><em>scale</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of alpha for the given scale.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The scale for which the value of alpha should be returned.
+Must satisfy <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">scale</span> <span class="pre">&lt;=</span> <span class="pre">self.num_scales</span></code>.
+Typically, <code class="docutils literal"><span class="pre">scale</span></code> is the first element of an <em>index</em> tuple,
+cf. <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.indices" title="AlphaTransform.AlphaShearletTransform.indices"><code class="xref py py-func docutils literal"><span class="pre">indices()</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">float</span></code></a>)
+The value of alpha associated to scale <code class="docutils literal"><span class="pre">scale</span></code>.
+We always have <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">self.alpha(scale)</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="AlphaTransform.AlphaShearletTransform.calculate_indices">
+<em class="property">classmethod </em><code class="descname">calculate_indices</code><span class="sig-paren">(</span><em>real</em>, <em>alphas</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.calculate_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function can be used to compute the <em>indices</em> associated to an
+alpha-shearlet system with the given properties.</p>
+<p>Given these indices, one can then compute e.g. the number of directions
+per scale and the total number of shearlets. For more details on what
+these <em>indices</em> are, cf. <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.indices" title="AlphaTransform.AlphaShearletTransform.indices"><code class="xref py py-func docutils literal"><span class="pre">indices()</span></code></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">One can get the same result by creating an object
+<code class="docutils literal"><span class="pre">my_trafo</span></code> of the class <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a>
+and then invoke <cite>my_trafo.indices</cite>. However, using the
+<code class="docutils literal"><span class="pre">calculate_indices</span></code> method is much faster.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>real</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flag determining whether the indices should be computed for an
+alpha-shearlet system consisting of real-valued alpha-shearlets,
+or not. See the documentation of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a>
+for more details.</li>
+<li><strong>alphas</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of alpha values which determines both, the number of scales
+and the value of alpha on each scale. See the documentation of
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> for more details.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(<a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a>) &#8211; A list of indices associated to an
+alpha-shearlet system with the given parameters.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.dual_frame_weight">
+<code class="descname">dual_frame_weight</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.dual_frame_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>For the fully sampled transform, the <em>dual frame</em>
+<img class="math" src="_images/math/4d25528571f313207db7d8ae3d505daa73a2d75c.png" alt="(\tilde{\psi_i})_i"/> is given by
+<img class="math" src="_images/math/339dd3722b876c7952c17f478f51a8a071531853.png" alt="\tilde{\psi_i} = \mathcal{F}^{-1}[\psi_i / w]"/>,
+where <img class="math" src="_images/math/073f3cd102897a2088925fb76f63cdd6d960c3b9.png" alt="(\psi_i)_i"/> is the alpha-shearlet frame.
+The weight <code class="docutils literal"><span class="pre">w</span></code>, which is called the <em>dual frame weight</em>,
+is given by this property.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(2-dimensional <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>) The dual frame weight w</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.fourier_norms">
+<code class="descname">fourier_norms</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.fourier_norms" title="Permalink to this definition">¶</a></dt>
+<dd><p>This property yields the <em>Fourier-side</em> L² norms of the individual
+spectrograms of the transform (as a tuple(!)).</p>
+<p>To obtain the (usually more important) <em>space-side</em> L² norms, use
+the property <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.space_norms" title="AlphaTransform.AlphaShearletTransform.space_norms"><code class="xref py py-func docutils literal"><span class="pre">space_norms()</span></code></a> instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple of floats</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="AlphaTransform.AlphaShearletTransform.get_frame_bounds">
+<code class="descname">get_frame_bounds</code><span class="sig-paren">(</span><em>do_norm=False</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.get_frame_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method yields the <em>frame bounds</em> of the associated transform as
+a tuple <code class="docutils literal"><span class="pre">(A,B)</span></code>, where <code class="docutils literal"><span class="pre">A</span></code> and <code class="docutils literal"><span class="pre">B</span></code> are the lower and upper frame
+bounds, respectively.</p>
+<p>Hence, if <code class="docutils literal"><span class="pre">(A,</span> <span class="pre">B)</span> <span class="pre">=</span> <span class="pre">self.get_frame_bounds(do_norm=b)</span></code> and
+<code class="docutils literal"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">numpy.linalg.norm(im)</span> <span class="pre">**</span> <span class="pre">2</span></code>, then:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">*</span> <span class="n">M</span> <span class="o">&lt;=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">do_norm</span><span class="o">=</span><span class="n">b</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">B</span><span class="o">*</span><span class="n">M</span>
+</pre></div>
+</div>
+<p>for all images <code class="docutils literal"><span class="pre">im</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>do_norm</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>This is the same flag as passed to <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>. Recall that
+in case of <code class="docutils literal"><span class="pre">do_norm=False</span></code>, the transform calculates the
+convolutions <img class="math" src="_images/math/abb4f0d8c27598fe0ef6af54373b371bef279680.png" alt="f \ast \psi_i"/>, while for <code class="docutils literal"><span class="pre">do_norm=True</span></code>, it
+calculates the convolutions with respect to the <em>normalized</em>
+alpha-shearlet filters, i.e.,
+<img class="math" src="_images/math/c17db3f1e415b35e5dc8401f605146cdd4e5e799.png" alt="f \ast \frac{\psi_i}{\| \psi_i \|_{L^2}}"/>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The transform is written in such a way that a frame with
+good frame bounds is obtained for <code class="docutils literal"><span class="pre">do_norm=False</span></code>.
+Setting <code class="docutils literal"><span class="pre">do_norm=True</span></code> will result in much worse frame
+bounds. Recall, however, that the one frame is obtained
+by a simple rescaling of a frame with good bounds.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.height">
+<code class="descname">height</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.height" title="Permalink to this definition">¶</a></dt>
+<dd><p>This property yields the height (in pixels, as an <a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">int</span></code></a>) of the
+images that can be analyzed using the <code class="docutils literal"><span class="pre">self</span></code> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.indices">
+<code class="descname">indices</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>This property yields a list of so-called <em>indices</em> which describe
+the geometric meaning of the different &#8220;parts&#8221; of the alpha-shearlet
+coefficients.</p>
+<p>To better explain this, consider the following example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span> <span class="o">=</span> <span class="n">AlphaShearletTransform</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span><span class="o">.</span><span class="n">indices</span>
+<span class="go">[-1,</span>
+<span class="go"> (0, -1, &#39;r&#39;), (0, 0, &#39;r&#39;), (0, 1, &#39;r&#39;),</span>
+<span class="go"> (0, 1, &#39;t&#39;), (0, 0, &#39;t&#39;), (0, -1, &#39;t&#39;),</span>
+<span class="go"> (0, -1, &#39;l&#39;), (0, 0, &#39;l&#39;), (0, 1, &#39;l&#39;),</span>
+<span class="go"> (0, 1, &#39;b&#39;), (0, 0, &#39;b&#39;), (0, -1, &#39;b&#39;),</span>
+<span class="go"> (1, -2, &#39;r&#39;), (1, -1, &#39;r&#39;), (1, 0, &#39;r&#39;), (1, 1, &#39;r&#39;), (1, 2, &#39;r&#39;),</span>
+<span class="go"> (1, 2, &#39;t&#39;), (1, 1, &#39;t&#39;), (1, 0, &#39;t&#39;), (1, -1, &#39;t&#39;), (1, -2, &#39;t&#39;),</span>
+<span class="go"> (1, -2, &#39;l&#39;), (1, -1, &#39;l&#39;), (1, 0, &#39;l&#39;), (1, 1, &#39;l&#39;), (1, 2, &#39;l&#39;),</span>
+<span class="go"> (1, 2, &#39;b&#39;), (1, 1, &#39;b&#39;), (1, 0, &#39;b&#39;), (1, -1, &#39;b&#39;), (1, -2, &#39;b&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">im</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">512</span><span class="p">,</span><span class="mi">512</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coeff</span> <span class="o">=</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coeff</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(33, 512, 512)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">my_trafo</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+<span class="go">33</span>
+</pre></div>
+</div>
+<p>First of all, note that the first dimension of <code class="docutils literal"><span class="pre">coeff</span></code> is the same as
+the length of <code class="docutils literal"><span class="pre">my_trafo.indices</span></code>. Precisely, <code class="docutils literal"><span class="pre">my_trafo.indices[i]</span></code>
+encodes information about the alpha-shearlet <img class="math" src="_images/math/ff4c68667536108ad669e43fe2c20417abc1cad6.png" alt="\psi_i"/> which is
+used to compute <img class="math" src="_images/math/d4ba48809cffa3b12a5d59db1d101eee24cfad5e.png" alt="\mathrm{coeff}[i] = \mathrm{im} \ast \psi_i"/>.</p>
+<p>The special index <code class="docutils literal"><span class="pre">-1</span></code> means that the associated alpha-shearlet
+belongs to the low-pass part.</p>
+<p>All other indices are of the form <code class="docutils literal"><span class="pre">(j,</span> <span class="pre">k,</span> <span class="pre">c)</span></code>, where this
+3-tuple describes the properties of the associated alpha-shearlet
+<img class="math" src="_images/math/ff4c68667536108ad669e43fe2c20417abc1cad6.png" alt="\psi_i"/>. Precisely,</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">j</span></code> encodes the <em>scale</em> (between 0 and <code class="docutils literal"><span class="pre">self.num_scales</span> <span class="pre">-</span> <span class="pre">1</span></code>)
+of <img class="math" src="_images/math/ff4c68667536108ad669e43fe2c20417abc1cad6.png" alt="\psi_i"/>.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">k</span></code> encodes the amount of <em>shearing</em>. This is always an integer
+satisfying <img class="math" src="_images/math/38c1f89893c8d04eca8e707293d0dd5ef6ba0f8b.png" alt="-\lceil 2^{j(1-\alpha)} \rceil \leq k \leq
+\lceil 2^{j(1-\alpha)} \rceil"/>,
+where <code class="docutils literal"><span class="pre">alpha</span></code> denotes the value of alpha associated to scale <code class="docutils literal"><span class="pre">j</span></code>.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">c</span></code> encodes the <em>frequency cone</em> in which the alpha-shearlet
+<img class="math" src="_images/math/ff4c68667536108ad669e43fe2c20417abc1cad6.png" alt="\psi_i"/> has its frequency support. For the case of
+complex-valued alpha-shearlets, the frequency plane is divided into
+the following four cones:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="18%" />
+<col width="18%" />
+<col width="15%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">value of c</th>
+<th class="head">&#8216;r&#8217;</th>
+<th class="head">&#8216;t&#8217;</th>
+<th class="head">&#8216;l&#8217;</th>
+<th class="head">&#8216;b&#8217;</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>cone</td>
+<td>right</td>
+<td>top</td>
+<td>left</td>
+<td>bottom</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>For the case of real-valued alpha-shearlets, there are just two
+frequency cones, the <em>horizontal</em> one (encoded by <code class="docutils literal"><span class="pre">'h'</span></code>) and
+the <em>vertical</em> one (encoded by <code class="docutils literal"><span class="pre">'v'</span></code>).</p>
+</li>
+</ul>
+<p>To get an intuitive understanding of the meaning of the indices and
+to understand the ordering of the different alpha-shearlets, the
+following code snippet might be helpful. It loops over all shearlets,
+prints their index and displays a plot of the spectrogram of the
+shearlet:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">AlphaTransform</span> <span class="k">import</span> <span class="n">AlphaShearletTransform</span> <span class="k">as</span> <span class="n">AST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span> <span class="o">=</span> <span class="n">AST</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">spect</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">my_trafo</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span>
+<span class="go">                            my_trafo.spectrograms):</span>
+<span class="go">        plt.imshow(spect)</span>
+<span class="go">        plt.title(&quot;index: {0}&quot;.format(index))</span>
+<span class="go">        plt.show()</span>
+</pre></div>
+</div>
+<p>One might also experiment with the additional arguments <code class="docutils literal"><span class="pre">real=True</span></code>
+or <code class="docutils literal"><span class="pre">periodization=False</span></code> (passed to the <code class="docutils literal"><span class="pre">AST</span></code> constructor) to see
+their effect.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AlphaTransform.AlphaShearletTransform.inverse_transform">
+<code class="descname">inverse_transform</code><span class="sig-paren">(</span><em>coeffs</em>, <em>real=False</em>, <em>inverse_spects=None</em>, <em>do_norm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.inverse_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the inverse alpha-shearlet transform.</p>
+<p>Precisely, this method computes the <strong>pseudo-inverse</strong> of the
+alpha-shearlet transform. This is the same as first projecting onto
+the range of the alpha-shearlet transform and then inverting.</p>
+<p>In particular, we have the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span> <span class="o">=</span> <span class="n">AlphaShearletTransform</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coeff</span> <span class="o">=</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">coeff</span><span class="p">))</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coeffs</strong> &#8211; <p>The coefficients of which the inverse transform should be
+calculated.</p>
+<p>Just as for the method <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.adjoint_transform" title="AlphaTransform.AlphaShearletTransform.adjoint_transform"><code class="xref py py-func docutils literal"><span class="pre">adjoint_transform()</span></code></a>, <code class="docutils literal"><span class="pre">coeffs</span></code>
+should be roughly of the same type as the return value
+of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>. Usually, this argument will be obtained
+directly or indirectly from <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>, e.g. by
+thresholding. Fore more details, see the documentation of
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.adjoint_transform" title="AlphaTransform.AlphaShearletTransform.adjoint_transform"><code class="xref py py-func docutils literal"><span class="pre">adjoint_transform()</span></code></a>.</p>
+</li>
+<li><strong>real</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>Setting <code class="docutils literal"><span class="pre">real=True</span></code> will cause <code class="docutils literal"><span class="pre">inverse_transform</span></code> to only
+return the real part of the actual inverse transform. Hence, we
+always have:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">my_trafo</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">coeff</span><span class="p">),</span>
+<span class="go">                np.real(my_trafo.inverse_transform(im,</span>
+<span class="go">                                                   real=True)))</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is <em>not</em> the same as passing <code class="docutils literal"><span class="pre">real=True</span></code> to the
+constructor of the class <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a>.</p>
+</div>
+</li>
+<li><strong>do_norm</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>To obtain the (pseudo)-inverse to the method <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>,
+this parameter must be set to the same value as for calling
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>.</p>
+<p>More precisely, recall that passing <code class="docutils literal"><span class="pre">do_norm=True</span></code> to
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a> causes the transform to be normalized, i.e., to
+compute <img class="math" src="_images/math/f34388a4b0687ac60e7f0b0dba743a9529e9d730.png" alt="f \ast \psi_i / \|\psi_i \|_{L^2}"/> instead of
+<img class="math" src="_images/math/abb4f0d8c27598fe0ef6af54373b371bef279680.png" alt="f \ast \psi_i"/>. If <code class="docutils literal"><span class="pre">do_norm=True</span></code> is passed to
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.inverse_transform" title="AlphaTransform.AlphaShearletTransform.inverse_transform"><code class="xref py py-func docutils literal"><span class="pre">inverse_transform()</span></code></a>, this normalization is undone and then
+the usual (pseudo)-inverse is applied.</p>
+</li>
+<li><strong>inverse_spects</strong> &#8211; <p>This parameter contains the spectrograms used to compute the
+inverse transform. For the default value (<code class="docutils literal"><span class="pre">None</span></code>), the usual
+spectrograms of the canonical dual frame, i.e.,
+<img class="math" src="_images/math/e5ef3637bce8465f5ba69e3d36003d0669be2737.png" alt="\tilde{\psi_i} = \mathcal{F}^{-1}[\widehat{\psi_i} / w]"/>
+are used, where <code class="docutils literal"><span class="pre">w</span></code> is the <em>dual frame weight</em>
+(cf. <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.dual_frame_weight" title="AlphaTransform.AlphaShearletTransform.dual_frame_weight"><code class="xref py py-func docutils literal"><span class="pre">dual_frame_weight()</span></code></a>).</p>
+<p>Essentially, this method simply computes
+<img class="math" src="_images/math/7e7c40813f38f6f82bad3d093e225786a677ca31.png" alt="\sum_i \mathrm{coeff}_i \ast \mathrm{inverse\_spects}_i"/>,
+which coincides with the pseudo inverse for the default choice of
+<code class="docutils literal"><span class="pre">inverse_spects</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The parameter <code class="docutils literal"><span class="pre">inverse_spects</span></code> is mainly for
+internal use or for performance optimizations.
+Only use it if you really know what you are doing!</p>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.is_parseval">
+<code class="descname">is_parseval</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.is_parseval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean flag indicating whether the transform was normalized to
+obtain a Parseval frame. This is just the same as the value of
+<code class="docutils literal"><span class="pre">parseval</span></code> that was passed to the constructor of
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> to constructo <code class="docutils literal"><span class="pre">self</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.is_real">
+<code class="descname">is_real</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.is_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean flag indicating whether the transform was symmetrized in
+Fourier to obtain <em>real-valued</em> alpha-shearlets. This is just the same
+as the value of <code class="docutils literal"><span class="pre">real</span></code> that was passed to the constructor of
+<a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> to construct <code class="docutils literal"><span class="pre">self</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.is_subsampled">
+<code class="descname">is_subsampled</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.is_subsampled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean flag indicating whether the transform is subsampled. This is
+just the same as the value of <code class="docutils literal"><span class="pre">subsampled</span></code> that was passed to the
+constructor of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> to construct <code class="docutils literal"><span class="pre">self</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.num_scales">
+<code class="descname">num_scales</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.num_scales" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of scales of the alpha-shearlet system. This is the same
+as the length of the parameter <code class="docutils literal"><span class="pre">alphas</span></code> that was passed to the
+constructor of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> to construct <code class="docutils literal"><span class="pre">self</span></code>.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="AlphaTransform.AlphaShearletTransform.num_shears">
+<em class="property">classmethod </em><code class="descname">num_shears</code><span class="sig-paren">(</span><em>alphas</em>, <em>j</em>, <em>real=False</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.num_shears" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.periodization">
+<code class="descname">periodization</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.periodization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean flag indicating whether the spectrograms of the alpha-shearlets
+which exceed the frequency range of the discrete fourier transform are
+periodized (value <code class="docutils literal"><span class="pre">True</span></code>) or truncated (value <code class="docutils literal"><span class="pre">False</span></code>).</p>
+<p>This is the same as the value of the parameter <code class="docutils literal"><span class="pre">periodization</span></code> that
+was passed to the constructor of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaShearletTransform</span></code></a> to
+construct <code class="docutils literal"><span class="pre">self</span></code>.</p>
+<p>To see the difference, executing the following code with different
+values for <code class="docutils literal"><span class="pre">periodization</span></code> might be helpful:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">AlphaTransform</span> <span class="k">import</span> <span class="n">AlphaShearletTransform</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">periodization</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span> <span class="o">=</span> <span class="n">AlphaShearletTransform</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span>
+<span class="go">                                      periodization=periodization)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span> <span class="o">=</span> <span class="n">my_trafo</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">index</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">my_trafo</span><span class="o">.</span><span class="n">spectrograms</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.redundancy">
+<code class="descname">redundancy</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.redundancy" title="Permalink to this definition">¶</a></dt>
+<dd><p>The redundancy of the alpha-shearlet frame associated to <code class="docutils literal"><span class="pre">self</span></code>.
+This is the number of coefficients of the transform divided by the
+number of coefficients of the input image (i.e., <code class="docutils literal"><span class="pre">width</span> <span class="pre">*</span> <span class="pre">height</span></code>).</p>
+<p>For the fully sampled transform, associated to each alpha-shearlet,
+the number of coefficients is identical to the dimension of the input.
+Hence, the redundancy is the same as the total number of
+alpha-shearlets, i.e., <code class="docutils literal"><span class="pre">len(self.indices)</span></code>.</p>
+<p>For the subsampled transform, the redundancy is much lower, but not
+as easy to calculate. Hence, this property is useful.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AlphaTransform.AlphaShearletTransform.scale_slice">
+<code class="descname">scale_slice</code><span class="sig-paren">(</span><em>scale</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.scale_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method to determine, for a given scale, the part of the
+spectrograms or of the transform coefficients that belong to the given
+scale.</p>
+<p>As an example, consider the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">AlphaTransform</span> <span class="k">import</span> <span class="n">AlphaShearletTransform</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span> <span class="o">=</span> <span class="n">AlphaShearletTransform</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span><span class="o">.</span><span class="n">scale_slice</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">slice(0, 1, None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span><span class="o">.</span><span class="n">scale_slice</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">slice(1, 13, None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span><span class="o">.</span><span class="n">scale_slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">slice(13, 33, None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_trafo</span><span class="o">.</span><span class="n">scale_slice</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">slice(33, 53, None)</span>
+</pre></div>
+</div>
+<p>Hence, if <code class="docutils literal"><span class="pre">coeff</span> <span class="pre">=</span> <span class="pre">my_trafo.transform(im)</span></code> for a given image <code class="docutils literal"><span class="pre">im</span></code>,
+then <code class="docutils literal"><span class="pre">coeff[0:1]</span></code> is the part belonging to scale <code class="docutils literal"><span class="pre">-1</span></code>
+(i.e., the low-pass part), <code class="docutils literal"><span class="pre">coeff[1:13]</span></code> is the part associated to
+scale <code class="docutils literal"><span class="pre">0</span></code>, etc.</p>
+<p>One can even write <code class="docutils literal"><span class="pre">coeff[my_trafo.scale_slice(1)]</span></code> to directly
+get the part of the transform coefficients associated to scale <code class="docutils literal"><span class="pre">1</span></code>,
+etc.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.shearlets">
+<code class="descname">shearlets</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.shearlets" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list (or a generator) of the (space-side, non-normalized)
+alpha-shearlets associated to the transform.</p>
+<p>A generator is returned if the <code class="docutils literal"><span class="pre">self</span></code> object was created with the
+option <code class="docutils literal"><span class="pre">generator=True</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.space_norms">
+<code class="descname">space_norms</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.space_norms" title="Permalink to this definition">¶</a></dt>
+<dd><p>This property yields the <em>space-side</em> L² norms of the analyzing
+alpha-shearlets. The return value is a single tuple containing
+all norms.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>We use the unitary version of the Fourier transform, so that
+the dirac delta <img class="math" src="_images/math/936e858e1e9a6fce8895d90310be9a1867ac5820.png" alt="\delta_0"/> at the origin satisfies
+<img class="math" src="_images/math/1d47bdd4a9af37e613ce7771f400f963f9432e3e.png" alt="\mathcal{F}[\delta_0]
+\equiv 1 / \sqrt{\mathrm{width} \cdot \mathrm{height}}"/>.</p>
+<p>Regarding the convolution theorem, this implies</p>
+<div class="math">
+<p><img src="_images/math/26632affb063374f6a66967ba6564d7396e53274.png" alt="f \ast g &amp;= \sqrt{\mathrm{width} \cdot \mathrm{height}} \cdot
+            \mathcal{F}^{-1}[\hat{f} \cdot \hat{g}] \\
+         &amp;= \mathcal{F}^{-1}([\sqrt{\mathrm{width}
+                              \cdot \mathrm{height}}
+                              \cdot \hat{f}]
+                             \cdot \hat{g})."/></p>
+</div><p>Hence, since we implement the convolution with the different
+alpha-shearlets as multiplication in the Fourier domain with the
+elements of <code class="docutils literal"><span class="pre">self.spectrograms</span></code>, the i-th space-side shearlet
+is given by</p>
+<div class="math">
+<p><img src="_images/math/2c441612a9ffbb3a30d2ae1a080c602a5266c767.png" alt="\psi_i = \mathcal{F}^{-1}[\sqrt{\mathrm{width}
+                                \cdot \mathrm{height}}
+                          \cdot \mathrm{self.spectrograms[i]}]."/></p>
+</div><p class="last">Hence, its L² norm is
+<img class="math" src="_images/math/2f438a1423eb2bee455c34743948126d4338448e.png" alt="\|\psi_i\|_{L^2}
+= \sqrt{\mathrm{width} \cdot \mathrm{height}}
+\cdot \| \mathrm{self.spectrograms[i]} \|_{L^2}"/></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.spectrograms">
+<code class="descname">spectrograms</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.spectrograms" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the spectrograms (Fourier transforms) of the alpha-shearlets
+associated to the transform.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the transform was constructed with <code class="docutils literal"><span class="pre">generator=True</span></code>, the
+return value is a <em>generator</em> instead of a list.</p>
+</div>
+<p>The ordering of this list is the same as that of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.indices" title="AlphaTransform.AlphaShearletTransform.indices"><code class="xref py py-func docutils literal"><span class="pre">indices()</span></code></a> and
+of the return value of <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>, i.e., if
+<code class="docutils literal"><span class="pre">coeff</span> <span class="pre">=</span> <span class="pre">self.transform(im)</span></code> for some image <code class="docutils literal"><span class="pre">im</span></code>, then <code class="docutils literal"><span class="pre">coeff[i]</span></code>
+are the coefficients associated to the alpha-shearlet with Fourier
+transform <code class="docutils literal"><span class="pre">self.spectrograms[i]</span></code> whose &#8220;geometric meaning&#8221;
+<code class="docutils literal"><span class="pre">(scale,</span> <span class="pre">shear,</span> <span class="pre">cone)</span></code> is given by <code class="docutils literal"><span class="pre">self.indices[i]</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The spectrograms are optimized for plotting, via
+<code class="xref py py-func docutils literal"><span class="pre">matplotlib.pyplot.imshow()</span></code>, not for computations. Hence, they
+are still &#8220;FFT shifted&#8221;. This can be undone by considering
+<code class="docutils literal"><span class="pre">fourier_util.my_ifft_shift(self.spectrograms[i])</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="AlphaTransform.AlphaShearletTransform.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>image</em>, <em>do_norm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the alpha-shearlet transform of <code class="docutils literal"><span class="pre">image</span></code>, where the
+properties (number of scales, value of alpha, etc.) of the
+transform are determined by the <code class="docutils literal"><span class="pre">self</span></code> object.</p>
+<p><strong>Parameters</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>image</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The &#8220;image&#8221; of which the transform should be computed.
+<code class="docutils literal"><span class="pre">image</span></code> must be a 2-dimensional <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> satisfying
+<code class="docutils literal"><span class="pre">image.shape</span> <span class="pre">==</span> <span class="pre">(self.height,</span> <span class="pre">self.width)</span></code>.</li>
+<li><strong>do_norm</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Boolean flag indicating whether the transform should be
+normalized by the (space-side) L² norms of the analyzing
+alpha-shearlets. Hence, if <code class="docutils literal"><span class="pre">do_norm=True</span></code>, then the returned
+coefficients correspond to
+<img class="math" src="_images/math/bcbf69eb806ba209d870384a95bb8379322d93c7.png" alt="\mathrm{image} \ast \psi_i / \|\psi_i\|_{L^2}"/>, instead
+of <img class="math" src="_images/math/cd3e936e7699b103ac15f703b9d74b6e80c9621b.png" alt="\mathrm{image} \ast \psi_i"/>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The (possibly normalized) alpha-shearlet coefficients of <code class="docutils literal"><span class="pre">image</span></code>.
+For a precise description of what is computed, we refer to the
+technical report.<p>Depending on the settings of the <code class="docutils literal"><span class="pre">self</span></code> object, the <em>return type</em>
+varies:</p>
+<ul class="simple">
+<li>For the fully sampled transform with <code class="docutils literal"><span class="pre">generator=False</span></code>, the
+return value is a single 3-dimensional <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>
+of dimension <code class="docutils literal"><span class="pre">(self.redundancy,</span> <span class="pre">self.height,</span> <span class="pre">self.width</span></code>).</li>
+<li>For the fully sampled transform with <code class="docutils literal"><span class="pre">generator=True</span></code>, the
+return value is a <em>generator</em> which produces the same output
+(one 2-dimensional <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> at a time) as for
+the ordinary fully sampled transform.</li>
+<li>For the subsampled transform, the return value is a <em>list</em> of
+2-dimensional numpy arrays <strong>of varying dimensions</strong>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="AlphaTransform.AlphaShearletTransform.transform_generator">
+<code class="descname">transform_generator</code><span class="sig-paren">(</span><em>image</em>, <em>do_norm=True</em><span class="sig-paren">)</span><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.transform_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method does the same as <a class="reference internal" href="#AlphaTransform.AlphaShearletTransform.transform" title="AlphaTransform.AlphaShearletTransform.transform"><code class="xref py py-func docutils literal"><span class="pre">transform()</span></code></a>, but always returns a
+<em>generator</em> instead of a <a class="reference external" href="https://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a> or a <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="AlphaTransform.AlphaShearletTransform.width">
+<code class="descname">width</code><a class="headerlink" href="#AlphaTransform.AlphaShearletTransform.width" title="Permalink to this definition">¶</a></dt>
+<dd><p>This property yields the width (in pixels, as an <a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">int</span></code></a>) of the
+images that can be analyzed using the <code class="docutils literal"><span class="pre">self</span></code> object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="AdaptiveAlpha.html" title="Choosing α adaptively"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Adaptive transform for manifold-valued data"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

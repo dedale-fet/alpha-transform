@@ -1,0 +1,221 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Functions defined on the sphere &#8212; Adaptive Alpha-Shearlet transform 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Adaptive Alpha-Shearlet transform 1.0 documentation" href="index.html" />
+    <link rel="next" title="Implementation of different “Mother Shearlets”" href="MotherShearlets.html" />
+    <link rel="prev" title="Choosing α adaptively" href="AdaptiveAlpha.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MotherShearlets.html" title="Implementation of different “Mother Shearlets”"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="AdaptiveAlpha.html" title="Choosing α adaptively"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="AlphaTransform.html">The α-shearlet transform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AdaptiveAlpha.html">Choosing α adaptively</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Functions defined on the sphere</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="MotherShearlets.html">Implementation of different &#8220;Mother Shearlets&#8221;</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlphaTransformUtility.html">Utility functions</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="AdaptiveAlpha.html"
+                        title="previous chapter">Choosing α adaptively</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="MotherShearlets.html"
+                        title="next chapter">Implementation of different &#8220;Mother Shearlets&#8221;</a></p>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-SphereTransform">
+<span id="functions-defined-on-the-sphere"></span><h1>Functions defined on the sphere<a class="headerlink" href="#module-SphereTransform" title="Permalink to this headline">¶</a></h1>
+<p>This module contains two functions which can be used to convert functions
+defined on the sphere (given in the form of a HEALPix map) to an array of
+12 cartesian images, where each of the cartesian images corresponds to a
+pullback of the given function with respect to one of the 12 HEALPix charts.</p>
+<p>Since the HEALPix charts are area preserving, taking the sphere-based
+alpha-shearlet transform is the same as taking the cartesian alpha-shearlet
+transform of each of the 12 cartesian images and concatenating the results.</p>
+<p>Reconstruction from these (possibly modified, e.g. thresholded) coefficients
+is straightforward: Reconstruct each of the 12 cartesian images, concatenate
+the results and push the result back to the sphere, using
+<a class="reference internal" href="#SphereTransform.put_all_faces" title="SphereTransform.put_all_faces"><code class="xref py py-func docutils literal"><span class="pre">put_all_faces()</span></code></a>, which again results in a HEALPix map.</p>
+<dl class="function">
+<dt id="SphereTransform.get_all_faces">
+<code class="descclassname">SphereTransform.</code><code class="descname">get_all_faces</code><span class="sig-paren">(</span><em>Imag</em>, <em>nested=False</em><span class="sig-paren">)</span><a class="headerlink" href="#SphereTransform.get_all_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function maps a function defined on the sphere to an array of 12
+cartesian images, where each of the cartesian images corresponds to
+a pullback of the given function with respect to one of the 12 HEALPix
+charts.</p>
+<p><strong>Required parameter</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Imag</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; <p>The function defined on the sphere, in the form of a one-dimensional
+<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> (a HEALPix map).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If the HEALPix map <code class="docutils literal"><span class="pre">Imag</span></code> uses &#8220;NESTED&#8221; ordering, the parameter
+<code class="docutils literal"><span class="pre">nested</span></code> needs to be set to <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameter</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nested</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>This parameter determines the ordering with which the different
+HEALPix pixels are stored in the array <code class="docutils literal"><span class="pre">Imag</span></code>; see
+<a class="reference external" href="http://healpix.jpl.nasa.gov/html/intronode4.htm">http://healpix.jpl.nasa.gov/html/intronode4.htm</a> for more details.</p>
+<p>If <code class="docutils literal"><span class="pre">nested</span></code> is set to <code class="docutils literal"><span class="pre">False</span></code>, this signifies that <code class="docutils literal"><span class="pre">Imag</span></code> uses
+the &#8220;RING&#8221; ordering.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A 3-dimensional <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> consisting of 12 cartesian
+images (2-dimensional arrays), where each image is a pullback of
+the input function <code class="docutils literal"><span class="pre">Imag</span></code> with respect to one of  the 12 HEALPix
+charts.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="SphereTransform.put_all_faces">
+<code class="descclassname">SphereTransform.</code><code class="descname">put_all_faces</code><span class="sig-paren">(</span><em>CubeFace</em>, <em>nested=False</em><span class="sig-paren">)</span><a class="headerlink" href="#SphereTransform.put_all_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given 12 cartesian functions corresponding to the 12 HEALPix
+faces,  this function pushes each of them back to the sphere
+using one of the HEALPix charts. The 12 different functions are
+pasted together to obtain a function defined on all of the sphere.</p>
+<p><strong>Required parameter</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>CubeFace</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; A 3-dimensional <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> consisting of 12 cartesian
+images (2-dimensional arrays) corresponding to the 12 HEALPix faces.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keyword parameter</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nested</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; <p>This parameter determines the ordering with which the different
+HEALPix pixels are stored in the returned array. See
+<a class="reference external" href="http://healpix.jpl.nasa.gov/html/intronode4.htm">http://healpix.jpl.nasa.gov/html/intronode4.htm</a> for more details.</p>
+<p>If <code class="docutils literal"><span class="pre">nested</span></code> is set to <code class="docutils literal"><span class="pre">False</span></code>, this signifies that the return value
+should use the &#8220;RING&#8221; ordering.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Return value</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A one-dimensional <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> (a HEALPix map)
+corresponding to the resulting &#8220;pasted&#8221; function.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MotherShearlets.html" title="Implementation of different “Mother Shearlets”"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="AdaptiveAlpha.html" title="Choosing α adaptively"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

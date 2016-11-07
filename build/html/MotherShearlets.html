@@ -1,0 +1,622 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Implementation of different “Mother Shearlets” &#8212; Adaptive Alpha-Shearlet transform 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Adaptive Alpha-Shearlet transform 1.0 documentation" href="index.html" />
+    <link rel="next" title="Utility functions" href="AlphaTransformUtility.html" />
+    <link rel="prev" title="Functions defined on the sphere" href="SphereTransform.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="AlphaTransformUtility.html" title="Utility functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="SphereTransform.html" title="Functions defined on the sphere"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="AlphaTransform.html">The α-shearlet transform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AdaptiveAlpha.html">Choosing α adaptively</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SphereTransform.html">Functions defined on the sphere</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Implementation of different &#8220;Mother Shearlets&#8221;</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AlphaTransformUtility.html">Utility functions</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="SphereTransform.html"
+                        title="previous chapter">Functions defined on the sphere</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="AlphaTransformUtility.html"
+                        title="next chapter">Utility functions</a></p>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-MotherShearlets">
+<span id="implementation-of-different-mother-shearlets"></span><h1>Implementation of different &#8220;Mother Shearlets&#8221;<a class="headerlink" href="#module-MotherShearlets" title="Permalink to this headline">¶</a></h1>
+<p>The classes, functions and objects in this module make it (comparatively)
+easy to define custom generating functions which act as &#8220;Mother shearlets&#8221;.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Implementing custom &#8220;Mother shearlets&#8221; is a complex task and thus should
+only be done if really needed. Proceed with caution.</p>
+</div>
+<p>To implement a custom set of generating functions, all one needs to do is
+to create a suitable object of the class <a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a> and pass
+it to the constructor of the <a class="reference internal" href="AlphaTransform.html#AlphaTransform.AlphaShearletTransform" title="AlphaTransform.AlphaShearletTransform"><code class="xref py py-class docutils literal"><span class="pre">AlphaTransform.AlphaShearletTransform</span></code></a>,
+via the <code class="docutils literal"><span class="pre">mother_shearlet</span></code> parameter.</p>
+<p>In a nutshell, in our implementation, a shearlet system is determined by</p>
+<ul>
+<li><p class="first">A <strong>low-pass filter</strong> which is given by <img class="math" src="_images/math/a2fbcbe9e0fd4c715c6ff8916c3b79fd0805f3af.png" alt="\phi \otimes \phi"/>, where
+<img class="math" src="_images/math/c2f31c22645274c375eff7920cfdfdc18d60341f.png" alt="\phi"/> is given by the <code class="docutils literal"><span class="pre">low_pass_function</span></code> attribute of class
+<a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</p>
+</li>
+<li><p class="first">A <strong>mother shearlet</strong> <img class="math" src="_images/math/499a2ee48b33448e80b97af9df9550828bdbfb59.png" alt="\psi"/>, which in our case is (in Fourier domain)
+given by</p>
+<div class="math">
+<p><img src="_images/math/6b91ec0b7ceec46a67377acfd44191c310c92b3a.png" alt="\widehat{\psi}(\xi) = \psi_1 (\xi_1) \cdot \psi_2 (\xi_2 / \xi_1)."/></p>
+</div><p>Here,</p>
+<ul class="simple">
+<li>we call <img class="math" src="_images/math/67fdd7a5f918cbf553bf02354a7b82e8bf56eb88.png" alt="\psi_1"/> the <strong>scale-sensitive generating function</strong>.
+It is given by the <code class="docutils literal"><span class="pre">scale_function`</span></code> attribute of class
+<a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</li>
+<li>we call <img class="math" src="_images/math/7620f89bf8b957f4cea5b5d215d12d10ef925d47.png" alt="\psi_2"/> the <strong>direction sensitive generating function</strong>.
+It is given by the <code class="docutils literal"><span class="pre">direction_function</span></code> attribute of class
+<a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</li>
+</ul>
+</li>
+</ul>
+<p>See the documentation of <a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a> below for more details.</p>
+<div class="section" id="the-class-bumpfunction">
+<h2>The class <code class="docutils literal"><span class="pre">BumpFunction</span></code><a class="headerlink" href="#the-class-bumpfunction" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="MotherShearlets.BumpFunction">
+<em class="property">class </em><code class="descclassname">MotherShearlets.</code><code class="descname">BumpFunction</code><a class="headerlink" href="#MotherShearlets.BumpFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Each instance of this class encapsulates a specific (one-dimensional)
+bump function <code class="docutils literal"><span class="pre">f</span></code>.</p>
+<p><strong>Attributes</strong>:</p>
+<dl class="attribute">
+<dt id="MotherShearlets.BumpFunction.support">
+<code class="descname">support</code><a class="headerlink" href="#MotherShearlets.BumpFunction.support" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple <code class="docutils literal"><span class="pre">(a,b)</span></code> such that the bump function <code class="docutils literal"><span class="pre">f</span></code>
+modeled by this object satisfies
+<img class="math" src="_images/math/df4333e4fa0dcc6fb89c6419500b112394b58eaf.png" alt="\mathrm{supp} f \subset (a,b)"/>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="MotherShearlets.BumpFunction.large_support">
+<code class="descname">large_support</code><a class="headerlink" href="#MotherShearlets.BumpFunction.large_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple <code class="docutils literal"><span class="pre">(a,b)</span></code> such that the bump function <code class="docutils literal"><span class="pre">f</span></code> modeled
+by this object is &#8220;large&#8221; on <img class="math" src="_images/math/b63003d2c696da5f0265f7aae32b2de021713368.png" alt="(a,b)"/>, i.e.,
+<img class="math" src="_images/math/93ad443ef66538c5c1284cc1ae666c37441253be.png" alt="|f| \geq c &gt; 0"/> on <img class="math" src="_images/math/b63003d2c696da5f0265f7aae32b2de021713368.png" alt="(a,b)"/> for a (reasonably large)
+constant <img class="math" src="_images/math/e0ae3d19954736b4ce6ab2d33fe5535e76cfac85.png" alt="c&gt;0"/>, e.g. <img class="math" src="_images/math/7e2d5dea191a8f9e88ede178178898448b132e84.png" alt="c = \frac{1}{2}"/>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="MotherShearlets.BumpFunction.call">
+<code class="descname">call</code><a class="headerlink" href="#MotherShearlets.BumpFunction.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>A callable object calculating <code class="docutils literal"><span class="pre">f(x)</span></code> given <code class="docutils literal"><span class="pre">x</span></code>.
+This should be vectorized, i.e., <code class="docutils literal"><span class="pre">call()</span></code> should accept
+numpy arrays (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>) and apply <code class="docutils literal"><span class="pre">f</span></code>
+componentwise.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="MotherShearlets.BumpFunction.theano_call">
+<code class="descname">theano_call</code><a class="headerlink" href="#MotherShearlets.BumpFunction.theano_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>This should be a callable object doing the same as <code class="docutils literal"><span class="pre">call</span></code>,
+but working on <code class="xref py py-class docutils literal"><span class="pre">theano.tensor.dmatrix</span></code> objects.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently, this attribute is not used anywhere and can thus
+be set arbitrarily (e.g. to <code class="docutils literal"><span class="pre">None</span></code>).</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-class-mothershearlet">
+<h2>The class <code class="docutils literal"><span class="pre">MotherShearlet</span></code><a class="headerlink" href="#the-class-mothershearlet" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="MotherShearlets.MotherShearlet">
+<em class="property">class </em><code class="descclassname">MotherShearlets.</code><code class="descname">MotherShearlet</code><a class="headerlink" href="#MotherShearlets.MotherShearlet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Each instance of this class acts as a container for the three (main)
+components determining an alpha-shearlet system.</p>
+<p>The actual <em>mother shearlet</em> <img class="math" src="_images/math/499a2ee48b33448e80b97af9df9550828bdbfb59.png" alt="\psi"/> is given by</p>
+<div class="math">
+<p><img src="_images/math/83a7712591a73a418797521d42e04828680332ea.png" alt="\psi(\xi) = \psi_1 (\xi_1) \cdot \psi_2 (\xi_2 / \xi_1),"/></p>
+</div><dl class="docutils">
+<dt>where:</dt>
+<dd><ul class="first last simple">
+<li><img class="math" src="_images/math/67fdd7a5f918cbf553bf02354a7b82e8bf56eb88.png" alt="\psi_1"/> is given by the <code class="docutils literal"><span class="pre">scale_function</span></code> attribute,</li>
+<li><img class="math" src="_images/math/7620f89bf8b957f4cea5b5d215d12d10ef925d47.png" alt="\psi_2"/> is given by the <code class="docutils literal"><span class="pre">direction_function</span></code> attribute.</li>
+</ul>
+</dd>
+</dl>
+<p>Finally, the <em>low frequency component</em> of the shearlet system is given by
+<img class="math" src="_images/math/a2fbcbe9e0fd4c715c6ff8916c3b79fd0805f3af.png" alt="\phi \otimes \phi"/> (tensor product),
+where <img class="math" src="_images/math/c2f31c22645274c375eff7920cfdfdc18d60341f.png" alt="\phi"/> is given by the <code class="docutils literal"><span class="pre">low_pass_function</span></code> attribute.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>All attributes are expected to be of type <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a>.</p>
+<p>Finally,</p>
+<ol class="last arabic simple">
+<li>if <code class="docutils literal"><span class="pre">(a,b)</span> <span class="pre">=</span> <span class="pre">scale_function.large_support</span></code>, then it is expected
+that:<ol class="lowerroman">
+<li><code class="docutils literal"><span class="pre">a,b</span> <span class="pre">&gt;</span> <span class="pre">0</span></code></li>
+<li><code class="docutils literal"><span class="pre">b/a</span> <span class="pre">&gt;=</span> <span class="pre">2</span></code>.</li>
+</ol>
+</li>
+<li>if <code class="docutils literal"><span class="pre">(a,b)</span> <span class="pre">=</span> <span class="pre">direction_function.large_support</span></code>, it is expected
+that:<ol class="lowerroman">
+<li><code class="docutils literal"><span class="pre">b</span> <span class="pre">&gt;=</span> <span class="pre">1/2</span></code>,</li>
+<li><code class="docutils literal"><span class="pre">a</span> <span class="pre">&lt;=</span> <span class="pre">-1/2</span></code>.</li>
+</ol>
+</li>
+</ol>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="bumpfunction-related-helper-functions">
+<h2><a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a>-related helper functions<a class="headerlink" href="#bumpfunction-related-helper-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="MotherShearlets.translate">
+<code class="descclassname">MotherShearlets.</code><code class="descname">translate</code><span class="sig-paren">(</span><em>f</em>, <em>x_0</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function translates a <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object <code class="docutils literal"><span class="pre">f</span></code>, i.e.,
+it returns <img class="math" src="_images/math/53e012c27951e8cfcf52f5a8d2194f5bc9dad9f9.png" alt="L_{x_0} f"/>, where <img class="math" src="_images/math/2bbef706e1080f8d4980c2cfbf1dd93de12d852c.png" alt="(L_y f)(x) = f(x - y)"/>.
+The new support is thus <img class="math" src="_images/math/20650e879d3c8124b318e0b0aafd1a237e71cbba.png" alt="x_0 + \mathrm{supp} f"/>.</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>f</strong> (<a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><em>BumpFunction</em></a>) &#8211; The <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object which should be translated.</li>
+<li><strong>x_0</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The translation parameter.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A new <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object representing the translated
+function.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="MotherShearlets.scale">
+<code class="descclassname">MotherShearlets.</code><code class="descname">scale</code><span class="sig-paren">(</span><em>f</em>, <em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function scales a <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object <code class="docutils literal"><span class="pre">f</span></code>,
+i.e., it returns <img class="math" src="_images/math/53ea88932e8962437f5411d245c554c1e16ff030.png" alt="f \circ (x \mapsto x/a)"/>.
+The new support is thus <img class="math" src="_images/math/8c18a12a507ab77dfe537f9ecfd99a74e9ba29d5.png" alt="a \cdot \mathrm{supp} f"/>.</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>f</strong> (<a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><em>BumpFunction</em></a>) &#8211; The <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object which should be translated.</li>
+<li><strong>a</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The scale parameter (positive real number).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A new <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object representing the scaled function.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="MotherShearlets.flip">
+<code class="descclassname">MotherShearlets.</code><code class="descname">flip</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.flip" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function &#8220;flips&#8221; a <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object <code class="docutils literal"><span class="pre">f</span></code>,
+i.e., it returns <img class="math" src="_images/math/70e94b75f2ef496a04cdcab1b9e6b39e1c457d32.png" alt="f \circ (x \mapsto -x)"/>.
+The new support is thus <img class="math" src="_images/math/d17d3e44a2097b3645ecdb03232b04c9ed8fecb8.png" alt="- \mathrm{supp} f"/>.</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> (<a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><em>BumpFunction</em></a>) &#8211; The <a class="reference internal" href="#MotherShearlets.BumpFunction" title="MotherShearlets.BumpFunction"><code class="xref py py-class docutils literal"><span class="pre">BumpFunction</span></code></a> object which should be flipped.</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A new &#8216;BumpFunction&#8217; object representing the flipped function.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="meyer-mother-shearlet-implementation">
+<h2>Meyer mother shearlet implementation<a class="headerlink" href="#meyer-mother-shearlet-implementation" title="Permalink to this headline">¶</a></h2>
+<p>The object <code class="docutils literal"><span class="pre">MotherShearlets.MeyerMotherShearlet</span></code> is an instance
+of <a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</p>
+<p>It uses</p>
+<ul class="simple">
+<li><a class="reference internal" href="#MotherShearlets.meyer_low_pass" title="MotherShearlets.meyer_low_pass"><code class="xref py py-func docutils literal"><span class="pre">meyer_low_pass()</span></code></a> as the generating function for the low-pass part,</li>
+<li><a class="reference internal" href="#MotherShearlets.meyer_scale_function" title="MotherShearlets.meyer_scale_function"><code class="xref py py-func docutils literal"><span class="pre">meyer_scale_function()</span></code></a> as the <em>scale-sensitive</em> generating function.</li>
+<li><a class="reference internal" href="#MotherShearlets.meyer_direction_function" title="MotherShearlets.meyer_direction_function"><code class="xref py py-func docutils literal"><span class="pre">meyer_direction_function()</span></code></a> as the <em>direction sensitive</em> generating
+function.</li>
+</ul>
+<dl class="function">
+<dt id="MotherShearlets.meyer">
+<code class="descclassname">MotherShearlets.</code><code class="descname">meyer</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.meyer" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function implements the function <code class="docutils literal"><span class="pre">v</span></code> from the paper <a class="reference external" href="https://arxiv.org/abs/1202.1773">Fast Finite Shearlet Transform</a>.</p>
+<p>It rises smoothly between 0 and 1.
+In particular, <img class="math" src="_images/math/f30e7839fe1174d21071c902522b83e58fd350db.png" alt="v(x) = 0"/> for <img class="math" src="_images/math/43d9b81c910770d124aa1b4d91d7c6c2e66704b5.png" alt="x \leq 0"/> and
+<img class="math" src="_images/math/8748852f5243dbb1dcfded4c7fd2de0a129dcee5.png" alt="v(x) = 1"/> for <img class="math" src="_images/math/39a28f02e1f381246c6b5b202fd777dce8a93416.png" alt="x \geq 1"/>.</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/fa0f735a5b8b87792facf6ceab48446c46637e72.png" alt="v(A)"/>, i.e. the function <code class="docutils literal"><span class="pre">v</span></code> applied to each entry of <code class="docutils literal"><span class="pre">A</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="MotherShearlets.meyer_scale_function">
+<code class="descclassname">MotherShearlets.</code><code class="descname">meyer_scale_function</code><span class="sig-paren">(</span><em>R</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.meyer_scale_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an implementation of the function <img class="math" src="_images/math/a7ec728118b8ca1750a4673b4e605d2ce2044218.png" alt="\tilde{W}"/> from the paper
+<a class="reference external" href="https://arxiv.org/abs/1404.1043/">Cartoon approximation with α-Curvelets</a>.</p>
+<dl class="docutils">
+<dt>The main properties of this function are the following:</dt>
+<dd><ol class="first last arabic simple">
+<li><img class="math" src="_images/math/79c41290030f159a2a63d1b32e4628f35580397d.png" alt="\mathrm{supp} \tilde{W} \subset [1/2, 2]"/>.</li>
+<li><img class="math" src="_images/math/614c1ee0db5cd696eab49bc0754bd754dda86125.png" alt="\tilde{W} \equiv 1"/> on <img class="math" src="_images/math/8ed63ebba5a813ade2fd2a70f646cad28f71fb90.png" alt="[3/4, 3/2]"/>.</li>
+</ol>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The quotient of the bounds of the interval where <img class="math" src="_images/math/a7ec728118b8ca1750a4673b4e605d2ce2044218.png" alt="\tilde{W}"/>
+is 1 is precisely 3/2 * 4/3 = 2, so that the function is suitable as
+a scale_function for the <a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a> class.</p>
+</div>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>R</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/3692534c1809fce938fd7db881bc69608dcc13bd.png" alt="\tilde{W}(R)"/>, i.e., <img class="math" src="_images/math/a7ec728118b8ca1750a4673b4e605d2ce2044218.png" alt="\tilde{W}"/> applied componentwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="MotherShearlets.meyer_low_pass">
+<code class="descclassname">MotherShearlets.</code><code class="descname">meyer_low_pass</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.meyer_low_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function uses the <a class="reference internal" href="#MotherShearlets.meyer" title="MotherShearlets.meyer"><code class="xref py py-func docutils literal"><span class="pre">meyer()</span></code></a> function to construct a bump function
+<img class="math" src="_images/math/c2f31c22645274c375eff7920cfdfdc18d60341f.png" alt="\phi"/> with the following properties:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><img class="math" src="_images/math/d61acd86a43510fd5c1ae81ce2998690b72d10cf.png" alt="\mathrm{supp} \phi \subset [-2,2]"/>,</li>
+<li><img class="math" src="_images/math/3a0f5f526941d6f6d2e1428ff0ac20e21bbf73c4.png" alt="\phi(x) = 1"/> for <img class="math" src="_images/math/4a8699730a1ef9dc1deeebc19551843f1cbc6e74.png" alt="x \in (-3/2, 3/2)"/>.</li>
+</ol>
+</div></blockquote>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/737054bff2ff0a3f4646328f5dc604e31d516814.png" alt="\phi(A)"/>, i.e. the function <img class="math" src="_images/math/c2f31c22645274c375eff7920cfdfdc18d60341f.png" alt="\phi"/> applied to each entry
+of <code class="docutils literal"><span class="pre">A</span></code>. Precisely, <img class="math" src="_images/math/5aaa05f79a97ac55409e211cb6ace513521a1100.png" alt="\phi(x) = 4 - 2 * v(|x|)"/>, where <code class="docutils literal"><span class="pre">v</span></code> is
+the function <a class="reference internal" href="#MotherShearlets.meyer" title="MotherShearlets.meyer"><code class="xref py py-func docutils literal"><span class="pre">meyer()</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="MotherShearlets.meyer_direction_function">
+<code class="descclassname">MotherShearlets.</code><code class="descname">meyer_direction_function</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.meyer_direction_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an implementation of a direction function <code class="docutils literal"><span class="pre">f</span></code>, i.e., it can be
+used for the attribute <code class="docutils literal"><span class="pre">direction_function</span></code> of the class
+<a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</p>
+<dl class="docutils">
+<dt>The main properties of this function are the following:</dt>
+<dd><ol class="first last arabic simple">
+<li><img class="math" src="_images/math/c2d9a5096678b9f007ea811c9446bc555c425a3a.png" alt="\mathrm{supp} f \subset (-1,1)"/>,</li>
+<li><img class="math" src="_images/math/f9c2199a78f03db2cccc256130e3817bc9635015.png" alt="f \equiv 1"/> on <img class="math" src="_images/math/4f53464084f227745262dd7a472d85099fee1ffc.png" alt="(-1/2, 1/2)"/>,</li>
+<li><code class="docutils literal"><span class="pre">f</span></code> is symmetric.</li>
+</ol>
+</dd>
+</dl>
+<p>The implementation uses the <a class="reference internal" href="#MotherShearlets.meyer" title="MotherShearlets.meyer"><code class="xref py py-func docutils literal"><span class="pre">meyer()</span></code></a> function.</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">f(A)</span></code>, i.e. <code class="docutils literal"><span class="pre">f</span></code> is applied componentwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="haeuser-mother-shearlet-implementation">
+<h2>Haeuser mother shearlet implementation<a class="headerlink" href="#haeuser-mother-shearlet-implementation" title="Permalink to this headline">¶</a></h2>
+<p>The <em>Häuser mother shearlet</em> is the one which is used in the paper
+<a class="reference external" href="https://arxiv.org/abs/1202.1773">Fast Finite Shearlet Transform</a> by S. Häuser and G. Steidl. In our implementation, it is
+represented by the object <code class="docutils literal"><span class="pre">MotherShearlets.HaeuserMotherShearlet</span></code>,
+which is an instance of <a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</p>
+<p>It uses</p>
+<ul class="simple">
+<li><a class="reference internal" href="#MotherShearlets.meyer_low_pass" title="MotherShearlets.meyer_low_pass"><code class="xref py py-func docutils literal"><span class="pre">meyer_low_pass()</span></code></a> as the generating function for the low-pass part,</li>
+<li><a class="reference internal" href="#MotherShearlets.haeuser_scale_function" title="MotherShearlets.haeuser_scale_function"><code class="xref py py-func docutils literal"><span class="pre">haeuser_scale_function()</span></code></a> as the <em>scale-sensitive</em> generating function,</li>
+<li><a class="reference internal" href="#MotherShearlets.haeuser_direction_function" title="MotherShearlets.haeuser_direction_function"><code class="xref py py-func docutils literal"><span class="pre">haeuser_direction_function()</span></code></a> as the <em>direction sensitive</em> generating
+function.</li>
+</ul>
+<dl class="function">
+<dt id="MotherShearlets.haeuser_scale_function">
+<code class="descclassname">MotherShearlets.</code><code class="descname">haeuser_scale_function</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.haeuser_scale_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an implementation of the function <code class="docutils literal"><span class="pre">b</span></code> from the paper <a class="reference external" href="https://arxiv.org/abs/1202.1773">Fast Finite Shearlet Transform</a>,
+but with support restricted to <em>positive</em> numbers, whereas in the paper,
+the function is symmetric.</p>
+<p>This function is supported in [1,4], is &#8220;large&#8221; on [2,3] and satisfies
+<img class="math" src="_images/math/fdfda853ad10fba6a734ac2c9069470891df448b.png" alt="\sum_{j=-\infty}^\infty b(2^j x) = 1"/> for all <img class="math" src="_images/math/8e022e5c86c47044eabb672904c6c1dc2706bb95.png" alt="x &gt; 0"/>.</p>
+<p>Furthermore, <img class="math" src="_images/math/650dcef618386a4b55591ec93254f5296e2bc5b4.png" alt="b(x) \geq \frac{1}{\sqrt{2}} \geq \frac{1}{2}"/> for
+<img class="math" src="_images/math/0c66ff3482b86d96bb3946a6d7cf624b5df1102f.png" alt="x \in [1.5, 3]"/>.  Thus, <code class="docutils literal"><span class="pre">b</span></code> is a good candidate for
+a <code class="docutils literal"><span class="pre">scale_function</span></code>, cf. <a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (a matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">b(A)</span></code>, i.e., <code class="docutils literal"><span class="pre">b</span></code> is applied componentwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="MotherShearlets.haeuser_direction_function">
+<code class="descclassname">MotherShearlets.</code><code class="descname">haeuser_direction_function</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.haeuser_direction_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an implementation of the function <img class="math" src="_images/math/e72fb8a62a8e3589e811ac341969f42d22cc7b50.png" alt="\widehat{\psi_2}"/>
+from the paper <a class="reference external" href="https://arxiv.org/abs/1202.1773">Fast Finite Shearlet Transform</a> (cf. eq. (6) in that paper).</p>
+<p>This function has support in [-1,1], is &#8220;large&#8221; on [-1/2,1/2] and satisfies
+<img class="math" src="_images/math/f5c7f132b82c8085f5861d6e6cf42c94ba4ccdad.png" alt="\sum_{j=-\infty}^\infty |\widehat{\psi_2}(x + j)|^2 = 1"/> for all x.</p>
+<p>Thus, <img class="math" src="_images/math/e72fb8a62a8e3589e811ac341969f42d22cc7b50.png" alt="\widehat{\psi_2}"/> is a good candidate for a
+<code class="docutils literal"><span class="pre">direction_function</span></code>, cf. <a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>.</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (a matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/ee8cd1dd4e7061753d9b1fb757160911239dc230.png" alt="\widehat{\psi_2}(A)"/>, i.e., <img class="math" src="_images/math/e72fb8a62a8e3589e811ac341969f42d22cc7b50.png" alt="\widehat{\psi_2}"/> is
+applied componentwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="indicator-mother-shearlet-implementation">
+<h2>Indicator mother shearlet implementation<a class="headerlink" href="#indicator-mother-shearlet-implementation" title="Permalink to this headline">¶</a></h2>
+<p>The &#8220;indicator&#8221; mother shearlet is a mother shearlet which is used
+purely for testing purposes. The low-pass part and the mother shearlet
+determined by its generating functions are indicator functions in the
+Fourier domain. Hence, a shearlet system using this mother shearlet
+will have <strong>very bad</strong> time localization.</p>
+<p>The &#8220;indicator&#8221; mother shearlet is represented by the object
+<code class="docutils literal"><span class="pre">MotherShearlets.IndicatorMotherShearlet</span></code>, which is an instance of
+<a class="reference internal" href="#MotherShearlets.MotherShearlet" title="MotherShearlets.MotherShearlet"><code class="xref py py-class docutils literal"><span class="pre">MotherShearlet</span></code></a>. It uses</p>
+<ul class="simple">
+<li><img class="math" src="_images/math/e7287a714a30e8e97be414ce2f6ef28950059df3.png" alt="\chi_{[-1,1]}"/> as the <em>low-pass</em> part of the set of generating
+functions,</li>
+<li><img class="math" src="_images/math/d133d821be0d89e522a8a8927b6846db8bea28e9.png" alt="\chi_{[1,2]}"/> as the <em>scale-sensitive</em> generating function, and</li>
+<li><img class="math" src="_images/math/6a6810a839dabd7f6fb7b82b9f4c38a2aa96e486.png" alt="\chi_{[-1/2, 1/2]}"/> as the <em>direction sensitive</em> generating function.</li>
+</ul>
+<dl class="function">
+<dt id="MotherShearlets.indicator_scale_function">
+<code class="descclassname">MotherShearlets.</code><code class="descname">indicator_scale_function</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.indicator_scale_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vectorized implementation of the indicator function <img class="math" src="_images/math/d133d821be0d89e522a8a8927b6846db8bea28e9.png" alt="\chi_{[1,2]}"/>,
+which can be used as a <code class="docutils literal"><span class="pre">scale_function</span></code>, mainly for testing purposes
+(since the space localization is horrible).</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value</em>:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/b3b91e4dc5e3e241fb001a147909c1bfb5c96572.png" alt="\chi_{[1,2]}(A)"/>, applied componentwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="MotherShearlets.indicator_low_pass_function">
+<code class="descclassname">MotherShearlets.</code><code class="descname">indicator_low_pass_function</code><span class="sig-paren">(</span><em>A</em><span class="sig-paren">)</span><a class="headerlink" href="#MotherShearlets.indicator_low_pass_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vectorized implementation of the indicator function <img class="math" src="_images/math/e7287a714a30e8e97be414ce2f6ef28950059df3.png" alt="\chi_{[-1,1]}"/>,
+which can be used as a <code class="docutils literal"><span class="pre">low_pass_function</span></code>, mainly for testing purposes
+(since the space localization is horrible).</p>
+<p><em>Parameters:</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>A</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.11)"><em>numpy.ndarray</em></a>) &#8211; The input (matrix with real entries).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Return value</em>:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><img class="math" src="_images/math/394101e1f2d806e2d8f028a8f540e18dfb579b0c.png" alt="\chi_{[-1,1]}(A)"/>, applied componentwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="AlphaTransformUtility.html" title="Utility functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="SphereTransform.html" title="Functions defined on the sphere"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Adaptive Alpha-Shearlet transform 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>
