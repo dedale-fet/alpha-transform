@@ -430,10 +430,10 @@ criterion for adaptively choosing the correct value of α.
 Since the [(logarithmic) dust data](#log-dust-image) used for the previous experiments does not allow for an
 easy visual comparison between the original image and the different denoised versions, we decided to instead
 use the following 684 x 684 cartoon image (taken from [SMBC](http://smbc-comics.com)) as a toy example:
-<center>
+<p align="center">
 <a name=cartoon-example></a>
 <img src="cartoon_example.png" width="400" height="400" />
-</center>
+</p>
 
 
 The following code uses a grid search over different values of α to determine the value with the
@@ -517,49 +517,57 @@ For an eye inspection, `optimize_denoising` also saves the noisy image and the r
 A small zoomed part of these reconstructions - together with the same part of the original image and the noisy image - can
 be seen below: 
 
-<center>
+<p align="center">
 <table>
     <tr>
         <td>
-            <center>
+            <p align="center">
                 <img src="OriginalImage.png" width="250" height="250" />
-                <figcaption> original image </figcaption>
-            </center>
+            </p>
+            <p align="center">original image</p>
         </td>
         <td>
-            <center>
+            <p align="center">
                 <img src="NoisyImage.png" width="250" height="250" />
-                <figcaption> noisy image </figcaption>
-            </center>
+            </p>
+            <p align="center">
+                noisy image
+            </p>
         </td>
     </tr>
 </table>
-</center>
+</p>
 
-<center>
+<p align="center">
 <table> 
 <tr>
     <td>
-        <img src="ReconstructionRidgelet.png" width="250" height="250" />
-        <center>
-            <figcaption>α=0</figcaption>
-        </center>
+        <p align="center">
+            <img src="ReconstructionRidgelet.png" width="250" height="250" />
+        </p>
+        <p align="center">
+            α=0
+        </p>
     </td>
     <td>
-        <img src="ReconstructionShearlet.png" width="250" height="250" />
-        <center>
-            <figcaption>α=0.5</figcaption>
-        </center>
+        <p align="center">
+            <img src="ReconstructionShearlet.png" width="250" height="250" />
+        </p>
+        <p align="center">
+            α=0.5
+        </p>
     </td>
     <td>
-        <img src="ReconstructionWavelet.png" width="250" height="250" />
-        <center>
-            <figcaption>α=1</figcaption>
-        </center>
+        <p align="center">
+            <img src="ReconstructionWavelet.png" width="250" height="250" />
+        </p>
+        <p align="center">
+            α=1
+        </p>
     </td>
 </tr> 
 </table>
-</center>
+</p>
 
 
 ## <a name="sphere-valued"></a>The α-shearlet transform for functions defined on the sphere
