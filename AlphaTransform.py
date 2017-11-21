@@ -1575,8 +1575,8 @@ class AlphaShearletTransform:
             for i, trafo in enumerate(trafo_fourier):
                 yield self._ifft(i, my_ifft_shift(trafo))
         else:
-            for i, (trafo, norm) in enumerate(zip(trafo_fourier,
-                                                  self.space_norms)):
+            for i, (norm, trafo) in enumerate(zip(self.space_norms,
+                                                  trafo_fourier)):
                 yield self._ifft(i, my_ifft_shift(trafo)) / norm
 
     def adjoint_transform(self, coeffs, spectrograms=None, do_norm=True):
@@ -1651,8 +1651,8 @@ class AlphaShearletTransform:
         result = np.zeros((self.height, self.width), dtype='complex128')
 
         if self.is_subsampled:
-            for i, (coeff, norm, spect) in enumerate(zip(coeffs,
-                                                         self.space_norms,
+            for i, (norm, coeff, spect) in enumerate(zip(self.space_norms,
+                                                         coeffs,
                                                          spectrograms)):
                 # adj_coeff = my_fft_shift(fft2(fftshift(coeffs[i])))
                 # adj_coeff = my_fft_shift(fft2(coeffs[i]))
@@ -1665,8 +1665,8 @@ class AlphaShearletTransform:
                                             adj_coeff * spect,
                                             result)
         else:
-            for coeff, norm, spect in zip(coeffs,
-                                          self.space_norms,
+            for norm, coeff, spect in zip(self.space_norms,
+                                          coeffs,
                                           spectrograms):
                 # result += spect * my_fft_shift(fft2(fftshift(coeff)))
                 # result += spect * my_fft_shift(fft2(coeff))
@@ -1863,8 +1863,8 @@ class AlphaShearletTransform:
                 dual_w = self.dual_frame_weight
                 assert dual_w is not None  # silence pyflakes
 
-                for i, (coef, norm, spec) in enumerate(zip(coeffs,
-                                                           self.space_norms,
+                for i, (norm, coef, spec) in enumerate(zip(self.space_norms,
+                                                           coeffs,
                                                            self.spectrograms)):
                     # coeff_fourier = my_fft_shift(fft2(fftshift(coef)))
                     coeff_f = my_fft_shift(self._fft(i, coef))
@@ -1876,8 +1876,8 @@ class AlphaShearletTransform:
                                     out=result)
                 result = self._ifft(-1, my_ifft_shift(result))
             else:
-                for coeff, norm, inv_spec in zip(coeffs,
-                                                 self.space_norms,
+                for norm, coeff, inv_spec in zip(self.space_norms,
+                                                 coeffs,
                                                  inverse_spects):
                     # coeff_f = my_fft_shift(self._fft(-1, coeff))
                     coeff_f = self._fft(-1, coeff)
