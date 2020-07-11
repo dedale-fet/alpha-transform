@@ -59,8 +59,8 @@ import pyfftw
 # from numpy.fft import ifftshift
 
 # import MotherShearletsTheano # this must be before 'import MotherShearlets'
-import MotherShearlets as MS
-from fourier_util import fft2, ifft2, my_fft_shift, my_ifft_shift
+from . import MotherShearlets as MS
+from .fourier_util import fft2, ifft2, my_fft_shift, my_ifft_shift
 from tqdm import tqdm
 
 

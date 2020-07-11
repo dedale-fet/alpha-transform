@@ -1,0 +1,6 @@
+.idea/
+*.pyc
+
+build/bdist.linux-x86_64/
+dist/
+*.egg-info/
