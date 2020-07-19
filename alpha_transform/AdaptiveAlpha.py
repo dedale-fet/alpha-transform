@@ -8,10 +8,10 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import gc
-from AlphaTransform import AlphaShearletTransform as AST
+from . import AlphaShearletTransform as AST
 from PIL import Image
 import math
-from AlphaTransformUtility import (threshold,
+from .AlphaTransformUtility import (threshold,
                                    image_load,
                                    denoise)
 # NOTE: If one wants to disable tqdm, comment the following line
